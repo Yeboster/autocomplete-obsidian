@@ -1,0 +1,43 @@
+Arguments: 
+  /usr/local/Cellar/node/15.3.0/bin/node /usr/local/bin/yarn add obsidian: https://github.com/obsidianmd/obsidian-api/tarball/master,
+
+PATH: 
+  /Users/titan/.pyenv/shims:/Users/titan/.asdf/shims:/Users/titan/.asdf/bin:/Users/titan/bin:/usr/local/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:/Library/TeX/texbin:/Users/titan/.yarn/bin:~/.iterm2/:/Users/titan/.rvm/bin
+
+Yarn version: 
+  1.22.10
+
+Node version: 
+  15.3.0
+
+Platform: 
+  darwin x64
+
+Trace: 
+  Error: Invalid URL
+      at module.exports.module.exports (/usr/local/lib/node_modules/yarn/lib/cli.js:71821:9)
+      at urlParts (/usr/local/lib/node_modules/yarn/lib/cli.js:31614:75)
+      at NpmRegistry.isRequestToRegistry (/usr/local/lib/node_modules/yarn/lib/cli.js:31657:19)
+      at NpmRegistry.<anonymous> (/usr/local/lib/node_modules/yarn/lib/cli.js:31689:31)
+      at Generator.next (<anonymous>)
+      at step (/usr/local/lib/node_modules/yarn/lib/cli.js:310:30)
+      at /usr/local/lib/node_modules/yarn/lib/cli.js:328:14
+      at new Promise (<anonymous>)
+      at new F (/usr/local/lib/node_modules/yarn/lib/cli.js:5301:28)
+      at NpmRegistry.<anonymous> (/usr/local/lib/node_modules/yarn/lib/cli.js:307:12)
+
+npm manifest: 
+  {
+    "name": "autocomplete-obsidian",
+    "version": "0.0.1",
+    "description": "An autocomplete plugin context based for Obsidian",
+    "main": "index.js",
+    "author": "Yeboster <yeboster@gmail.com>",
+    "license": "MIT"
+  }
+
+yarn manifest: 
+  No manifest
+
+Lockfile: 
+  No lockfile

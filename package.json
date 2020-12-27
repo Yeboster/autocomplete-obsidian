@@ -1,0 +1,23 @@
+{
+  "name": "autocomplete-obsidian",
+  "version": "0.0.1",
+  "description": "An autocomplete plugin context based for Obsidian",
+  "main": "index.js",
+  "author": "Yeboster <yeboster@gmail.com>",
+  "license": "MIT",
+  "scripts": {
+    "dev": "rollup --config rollup.config.js -w",
+    "build": "rollup --config rollup.config.js"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "@rollup/plugin-commonjs": "^17.0.0",
+    "@rollup/plugin-node-resolve": "^11.0.1",
+    "@rollup/plugin-typescript": "^8.1.0",
+    "@types/node": "^14.14.16",
+    "obsidian": "https://github.com/obsidianmd/obsidian-api/tarball/master",
+    "rollup": "^2.35.1",
+    "tslib": "^2.0.3",
+    "typescript": "^4.1.3"
+  }
+}
