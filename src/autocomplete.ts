@@ -4,10 +4,11 @@ import LatexProvider from './providers/latex'
 export default class AutocompleteView {
   private view: HTMLElement
   private show: boolean
-  private suggestions: Array<string>
-  private currentText: string | undefined
-  private selectedIndex: number | undefined
   private providers: Provider[]
+  private suggestions: Array<string>
+  private selectedIndex?: number
+  private currentText?: string
+  private cursorAtTrigger?: CodeMirror.Position
 
   public constructor() {
     this.show = false
@@ -19,33 +20,33 @@ export default class AutocompleteView {
     return this.show
   }
 
-  public showView() {
+  public showView(cursor: CodeMirror.Position) {
+    this.cursorAtTrigger = cursor
     this.show = true
   }
 
   public removeView(): void {
     this.show = false
+    this.cursorAtTrigger = null
 
     this.destroyView()
   }
 
-  public updateView(cursor: CodeMirror.Position, currentLine: string): HTMLElement | null {
-    console.log('updating view...', this.show)
+  public updateView(currentLine: string, cursor: CodeMirror.Position): HTMLElement | null {
     if (!this.show) return
 
     // TODO: Find a diff approach instead of generating all again
     this.destroyView()
 
-    const text = this.lastWord(cursor.ch, currentLine)
+    const text = this.completionWord(currentLine, cursor)
 
     if (text !== this.currentText) {
       this.currentText = text
 
-      const suggestions = this.providers.reduce((acc: string[], provider: Provider) => {
+      this.suggestions = this.providers.reduce((acc: string[], provider: Provider) => {
         const s = provider.matchWith(text)
         return acc.concat(s)
       }, [])
-      this.suggestions = suggestions
       this.selectedIndex = 0
     }
 
@@ -71,18 +72,20 @@ export default class AutocompleteView {
       this.selectedIndex = this.suggestions.length - 1
   }
 
-  public getSelectedAndPosition(line: string, cursor: CodeMirror.Position): [string, CodeMirror.Position] {
-    const cursorPosition = cursor.ch
-
-    const wordIndex = this.lastWordIndex(cursorPosition, line)
+  public getSelectedAndPosition(cursor: CodeMirror.Position): [string, CodeMirror.Position, CodeMirror.Position] {
+    const textEndIndex = cursor.ch
     const updatedCursorFrom = {
-      line: cursor.line,
-      ch: wordIndex
+      line: this.cursorAtTrigger.line,
+      ch: this.cursorAtTrigger.ch
+    }
+    const updatedCursorTo = {
+      line: this.cursorAtTrigger.line,
+      ch: textEndIndex
     }
 
     const selected = this.getSelected()
 
-    return [selected, updatedCursorFrom]
+    return [selected, updatedCursorFrom, updatedCursorTo]
   }
 
   private getSelected() {
@@ -128,22 +131,8 @@ export default class AutocompleteView {
     return containerNode
   }
 
-  private lastWordIndex(cursorAt: number, text: string): number {
-    let wordStartIndex = 0
-
-    for (let index = cursorAt; index-- >= 0;) {
-      if (text[index] === ' ') {
-        wordStartIndex = index + 1 // Maintain space
-        break
-      }
-    }
-
-    return wordStartIndex
-  }
-
-  private lastWord(cursorPosition: number, currentLine: string): string | null {
-    const wordStartIndex = this.lastWordIndex(cursorPosition, currentLine)
-    const word = currentLine.substring(wordStartIndex, cursorPosition)
+  private completionWord(currentLine: string, cursor: CodeMirror.Position): string | null {
+    const word = currentLine.substring(this.cursorAtTrigger.ch, cursor.ch)
 
     return word
   }

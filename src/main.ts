@@ -1,4 +1,4 @@
-import {Plugin} from 'obsidian'
+import {MarkdownView, Plugin} from 'obsidian'
 import AutocompleteView from './autocomplete'
 
 export default class AutocompletePlugin extends Plugin {
@@ -19,8 +19,13 @@ export default class AutocompletePlugin extends Plugin {
         const autocomplete = this.autocompleteView
         if (autocomplete.isShown())
           autocomplete.removeView()
-        else
-          autocomplete.showView()
+        else {
+          const view = this.app.workspace.activeLeaf.view
+          if (view instanceof MarkdownView) {
+            const cursor = view.sourceMode.cmEditor.getCursor()
+            autocomplete.showView(cursor)
+          }
+        }
       }
     })
 
@@ -32,7 +37,6 @@ export default class AutocompletePlugin extends Plugin {
 
         // For now using ctrl+j/k
         // TODO: Convert to ctrl+n/p
-        console.log(event)
         if (event.ctrlKey) {
           switch (event.key) {
             case 'j':
@@ -45,9 +49,9 @@ export default class AutocompletePlugin extends Plugin {
               break
             case 'Enter':
               // Use selected item
-              const [selected, replaceFrom] = this.autocompleteView.getSelectedAndPosition(currentLine, cursor)
+              const [selected, replaceFrom, replaceTo] = this.autocompleteView.getSelectedAndPosition(cursor)
               cm.operation(() => {
-                cm.replaceRange(selected, replaceFrom, cursor)
+                cm.replaceRange(selected, replaceFrom, replaceTo)
 
                 const newCursorPosition = replaceFrom.ch + selected.length
                 const updatedCursor = {
@@ -61,7 +65,7 @@ export default class AutocompletePlugin extends Plugin {
           }
         }
 
-        const updatedView = this.autocompleteView.updateView(cursor, currentLine)
+        const updatedView = this.autocompleteView.updateView(currentLine, cursor)
 
         if (updatedView)
           this.appendWidget(cm, updatedView)
