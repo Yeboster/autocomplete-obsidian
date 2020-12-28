@@ -35,7 +35,7 @@ export default class AutocompletePlugin extends Plugin {
         const currentLineNumber = cursor.line
         const currentLine: string = cm.getLine(currentLineNumber)
 
-        // For now using ctrl+j/k
+        // For now using ctrl+j/l
         // TODO: Convert to ctrl+n/p
         if (event.ctrlKey) {
           switch (event.key) {
@@ -43,24 +43,14 @@ export default class AutocompletePlugin extends Plugin {
               // Down
               this.autocompleteView.selectNext()
               break
-            case 'k':
+            // l instead of j because Ctrl+k in insert mode removes the content on the right
+            case 'l': 
               // Up
               this.autocompleteView.selectPrevious()
               break
             case 'Enter':
               // Use selected item
-              const [selected, replaceFrom, replaceTo] = this.autocompleteView.getSelectedAndPosition(cursor)
-              cm.operation(() => {
-                cm.replaceRange(selected, replaceFrom, replaceTo)
-
-                const newCursorPosition = replaceFrom.ch + selected.length
-                const updatedCursor = {
-                  line: cursor.line,
-                  ch: newCursorPosition
-                }
-                cm.setCursor(updatedCursor)
-              })
-              this.autocompleteView.removeView()
+              this.selectSuggestion(cursor, cm)
               break
           }
         }
@@ -73,6 +63,21 @@ export default class AutocompletePlugin extends Plugin {
     })
   }
 
+  private selectSuggestion(cursor: CodeMirror.Position, cm: CodeMirror.Editor) {
+    const [selected, replaceFrom, replaceTo] = this.autocompleteView.getSelectedAndPosition(cursor)
+    cm.operation(() => {
+      cm.replaceRange(selected, replaceFrom, replaceTo)
+
+      const newCursorPosition = replaceFrom.ch + selected.length
+      const updatedCursor = {
+        line: cursor.line,
+        ch: newCursorPosition
+      }
+      cm.setCursor(updatedCursor)
+    })
+    this.autocompleteView.removeView()
+  }
+
   async onunload() {
     this.autocompleteView.removeView()
     console.log('Bye!')
@@ -82,5 +87,6 @@ export default class AutocompletePlugin extends Plugin {
     const cursor = editor.getCursor()
 
     editor.addWidget({ch: cursor.ch, line: cursor.line}, view, scrollable)
+    this.autocompleteView.viewRenderedCallback()
   }
 }

@@ -56,6 +56,22 @@ export default class AutocompleteView {
     return this.view
   }
 
+  public viewRenderedCallback() {
+    // TODO: How to manage click on list ? 
+    // Add event listener to every line ?
+
+    this.scrollToSelected()
+  }
+
+  private scrollToSelected() {
+    // TODO: Remove hack
+    if (this.selectedIndex > 8) {
+      const suggestion = document.getElementById(`suggestion-${this.selectedIndex}`)
+      if (suggestion)
+        suggestion.scrollIntoView()
+    }
+  }
+
   public selectNext() {
     if (this.selectedIndex >= 0) {
       const increased = this.selectedIndex + 1
@@ -113,20 +129,29 @@ export default class AutocompleteView {
       `
     })
     const viewString = `
-       <div class="suggestion">
-         ${suggestionsHtml.join('\n')}
-       </div>
-       <div class="prompt-instructions">
-         <div class="prompt-instruction">
-           <span>Autocomplete actions</span>
-         </div>
-       </div>
+      <div id="suggestion-list" class="suggestion">
+        ${suggestionsHtml.join('\n')}
+      </div>
+      <div class="prompt-instructions">
+        <div class="prompt-instruction">
+          <span class="prompt-instruction-command">Ctrl+j</span>
+          <span>Next Suggestion</span>
+        </div>
+        <div class="prompt-instruction">
+          <span class="prompt-instruction-command">Ctrl+l</span>
+          <span>Previous Suggestion</span>
+        </div>
+        <div class="prompt-instruction">
+          <span class="prompt-instruction-command">Ctrl+Enter</span>
+          <span>Select Suggestion</span>
+        </div>
+      </div>
     `
     const containerNode = document.createElement("div")
-    containerNode.addClass("suggestion-container")
-    containerNode.insertAdjacentHTML('beforeend', viewString)
-
-    // TODO: Add event listeners
+    if (suggestionsHtml.length > 0) {
+      containerNode.addClass("suggestion-container")
+      containerNode.insertAdjacentHTML('beforeend', viewString)
+    }
 
     return containerNode
   }
