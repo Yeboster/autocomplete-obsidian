@@ -20,7 +20,7 @@ export default {
     copy({
       targets: [
         { src: 'dist/main.js', dest: TEST_VAULT },
-        { src: ['manifest.json', './src/assets/styles.css'], dest: TEST_VAULT }
+        { src: ['manifest.json', './src/assets/style.css'], dest: TEST_VAULT }
       ], flatten: true
     })
   ]

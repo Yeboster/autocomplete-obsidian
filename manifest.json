@@ -6,5 +6,7 @@
   "description": "This provides text autocomplete based on context.",
   "author": "Yeboster",
   "authorUrl": "https://github.com/Yeboster/",
-  "isDesktopOnly": true
+  "isDesktopOnly": false,
+  "js": "main.js",
+  "css": "style.css"
 }
