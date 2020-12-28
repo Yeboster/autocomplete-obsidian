@@ -113,14 +113,23 @@ export default class AutocompleteView {
       `
     })
     const viewString = `
-       <div class="suggestion">
-         ${suggestionsHtml.join('\n')}
-       </div>
-       <div class="prompt-instructions">
-         <div class="prompt-instruction">
-           <span>Autocomplete actions</span>
-         </div>
-       </div>
+      <div class="suggestion">
+        ${suggestionsHtml.join('\n')}
+      </div>
+      <div class="prompt-instructions">
+        <div class="prompt-instruction">
+          <span class="prompt-instruction-command">Ctrl+j</span>
+          <span>Next Suggestion</span>
+        </div>
+        <div class="prompt-instruction">
+          <span class="prompt-instruction-command">Ctrl+k</span>
+          <span>Previous Suggestion</span>
+        </div>
+        <div class="prompt-instruction">
+          <span class="prompt-instruction-command">Ctrl+enter</span>
+          <span>Select Suggestion</span>
+        </div>
+      </div>
     `
     const containerNode = document.createElement("div")
     containerNode.addClass("suggestion-container")
