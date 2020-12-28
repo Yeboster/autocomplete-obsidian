@@ -31,7 +31,6 @@ export default class AutocompletePlugin extends Plugin {
 
     this.app.workspace.on('codemirror', (editor) => {
       editor.on('keyup', async (cm, event) => {
-        console.log(event, this.autocompleteView)
         const cursor = cm.getCursor()
         const currentLineNumber = cursor.line
         const currentLine: string = cm.getLine(currentLineNumber)
@@ -87,6 +86,6 @@ export default class AutocompletePlugin extends Plugin {
     const cursor = editor.getCursor()
 
     editor.addWidget({ch: cursor.ch, line: cursor.line}, view, scrollable)
-    this.autocompleteView.scrollIntoSelected()
+    this.autocompleteView.viewRenderedCallback()
   }
 }

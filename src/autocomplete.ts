@@ -56,7 +56,14 @@ export default class AutocompleteView {
     return this.view
   }
 
-  public scrollIntoSelected() {
+  public viewRenderedCallback() {
+    // TODO: How to manage click on list ? 
+    // Add event listener to every line ?
+
+    this.scrollToSelected()
+  }
+
+  private scrollToSelected() {
     // TODO: Remove hack
     if (this.selectedIndex > 8) {
       const suggestion = document.getElementById(`suggestion-${this.selectedIndex}`)
@@ -135,7 +142,7 @@ export default class AutocompleteView {
           <span>Previous Suggestion</span>
         </div>
         <div class="prompt-instruction">
-          <span class="prompt-instruction-command">Ctrl+enter</span>
+          <span class="prompt-instruction-command">Ctrl+Enter</span>
           <span>Select Suggestion</span>
         </div>
       </div>
@@ -145,8 +152,6 @@ export default class AutocompleteView {
       containerNode.addClass("suggestion-container")
       containerNode.insertAdjacentHTML('beforeend', viewString)
     }
-
-    // TODO: Add event listeners
 
     return containerNode
   }
