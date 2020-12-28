@@ -1,2 +1,6 @@
-main.js
 node_modules/
+
+test-vault/
+
+# Release folder
+dist/
