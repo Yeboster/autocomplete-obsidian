@@ -1,13 +1,18 @@
+import Provider from './providers/provider'
+import LatexProvider from './providers/latex'
+
 export default class AutocompleteView {
   private view: HTMLElement
   private show: boolean
   private suggestions: Array<string>
   private currentText: string | undefined
   private selectedIndex: number | undefined
+  private providers: Provider[]
 
   public constructor() {
     this.show = false
     this.suggestions = []
+    this.providers = [new LatexProvider()]
   }
 
   public isShown() {
@@ -36,8 +41,12 @@ export default class AutocompleteView {
     if (text !== this.currentText) {
       this.currentText = text
 
-      // TODO: Generate results
-      this.suggestions = [text, "hello", "world"]
+      const suggestions = this.providers.reduce((acc: string[], provider: Provider) => {
+        const s = provider.matchWith(text)
+        return acc.concat(s)
+      }, [])
+      this.suggestions = suggestions
+      this.selectedIndex = 0
     }
 
     const view = this.generateView(this.suggestions)
@@ -92,6 +101,7 @@ export default class AutocompleteView {
   private generateView(suggestions: Array<string>) {
     const suggestionsHtml = suggestions.map((tip, index) => {
       const isSelected = this.selectedIndex === index
+      // TODO: Add provider category as div.suggestion-content > span.suggestion-flair
       // TODO: Fix missing custom css styles and remove style hotfix
       return `
         <div id="suggestion-${index}" style="white-space: nowrap;" class="suggestion-item${isSelected ? ' is-selected' : ''}">

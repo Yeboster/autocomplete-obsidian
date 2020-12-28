@@ -1,4 +1,4 @@
-import {Plugin, MarkdownView} from 'obsidian'
+import {Plugin} from 'obsidian'
 import AutocompleteView from './autocomplete'
 
 export default class AutocompletePlugin extends Plugin {
@@ -23,6 +23,7 @@ export default class AutocompletePlugin extends Plugin {
           autocomplete.showView()
       }
     })
+
     this.app.workspace.on('codemirror', (editor) => {
       editor.on('keyup', async (cm, event) => {
         const cursor = cm.getCursor()
@@ -36,12 +37,10 @@ export default class AutocompletePlugin extends Plugin {
           switch (event.key) {
             case 'j':
               // Down
-              console.log('down')
               this.autocompleteView.selectNext()
               break
             case 'k':
               // Up
-              console.log('up')
               this.autocompleteView.selectPrevious()
               break
             case 'Enter':
