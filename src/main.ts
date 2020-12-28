@@ -35,7 +35,7 @@ export default class AutocompletePlugin extends Plugin {
         const currentLineNumber = cursor.line
         const currentLine: string = cm.getLine(currentLineNumber)
 
-        // For now using ctrl+j/k
+        // For now using ctrl+j/l
         // TODO: Convert to ctrl+n/p
         if (event.ctrlKey) {
           switch (event.key) {
@@ -43,7 +43,8 @@ export default class AutocompletePlugin extends Plugin {
               // Down
               this.autocompleteView.selectNext()
               break
-            case 'k':
+            // l instead of j because Ctrl+k in insert mode removes the content on the right
+            case 'l': 
               // Up
               this.autocompleteView.selectPrevious()
               break
