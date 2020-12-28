@@ -56,6 +56,15 @@ export default class AutocompleteView {
     return this.view
   }
 
+  public scrollIntoSelected() {
+    // TODO: Remove hack
+    if (this.selectedIndex > 8) {
+      const suggestion = document.getElementById(`suggestion-${this.selectedIndex}`)
+      if (suggestion)
+        suggestion.scrollIntoView()
+    }
+  }
+
   public selectNext() {
     if (this.selectedIndex >= 0) {
       const increased = this.selectedIndex + 1
@@ -113,7 +122,7 @@ export default class AutocompleteView {
       `
     })
     const viewString = `
-      <div class="suggestion">
+      <div id="suggestion-list" class="suggestion">
         ${suggestionsHtml.join('\n')}
       </div>
       <div class="prompt-instructions">
@@ -132,8 +141,10 @@ export default class AutocompleteView {
       </div>
     `
     const containerNode = document.createElement("div")
-    containerNode.addClass("suggestion-container")
-    containerNode.insertAdjacentHTML('beforeend', viewString)
+    if (suggestionsHtml.length > 0) {
+      containerNode.addClass("suggestion-container")
+      containerNode.insertAdjacentHTML('beforeend', viewString)
+    }
 
     // TODO: Add event listeners
 

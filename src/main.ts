@@ -31,6 +31,7 @@ export default class AutocompletePlugin extends Plugin {
 
     this.app.workspace.on('codemirror', (editor) => {
       editor.on('keyup', async (cm, event) => {
+        console.log(event, this.autocompleteView)
         const cursor = cm.getCursor()
         const currentLineNumber = cursor.line
         const currentLine: string = cm.getLine(currentLineNumber)
@@ -49,18 +50,7 @@ export default class AutocompletePlugin extends Plugin {
               break
             case 'Enter':
               // Use selected item
-              const [selected, replaceFrom, replaceTo] = this.autocompleteView.getSelectedAndPosition(cursor)
-              cm.operation(() => {
-                cm.replaceRange(selected, replaceFrom, replaceTo)
-
-                const newCursorPosition = replaceFrom.ch + selected.length
-                const updatedCursor = {
-                  line: cursor.line,
-                  ch: newCursorPosition
-                }
-                cm.setCursor(updatedCursor)
-              })
-              this.autocompleteView.removeView()
+              this.selectSuggestion(cursor, cm)
               break
           }
         }
@@ -73,6 +63,21 @@ export default class AutocompletePlugin extends Plugin {
     })
   }
 
+  private selectSuggestion(cursor: CodeMirror.Position, cm: CodeMirror.Editor) {
+    const [selected, replaceFrom, replaceTo] = this.autocompleteView.getSelectedAndPosition(cursor)
+    cm.operation(() => {
+      cm.replaceRange(selected, replaceFrom, replaceTo)
+
+      const newCursorPosition = replaceFrom.ch + selected.length
+      const updatedCursor = {
+        line: cursor.line,
+        ch: newCursorPosition
+      }
+      cm.setCursor(updatedCursor)
+    })
+    this.autocompleteView.removeView()
+  }
+
   async onunload() {
     this.autocompleteView.removeView()
     console.log('Bye!')
@@ -82,5 +87,6 @@ export default class AutocompletePlugin extends Plugin {
     const cursor = editor.getCursor()
 
     editor.addWidget({ch: cursor.ch, line: cursor.line}, view, scrollable)
+    this.autocompleteView.scrollIntoSelected()
   }
 }
