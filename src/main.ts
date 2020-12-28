@@ -1,4 +1,4 @@
-import {Plugin, Hotkey} from 'obsidian'
+import {Plugin, MarkdownView} from 'obsidian'
 import AutocompleteView from './autocomplete'
 
 export default class AutocompletePlugin extends Plugin {
@@ -23,12 +23,44 @@ export default class AutocompletePlugin extends Plugin {
           autocomplete.showView()
       }
     })
-
     this.app.workspace.on('codemirror', (editor) => {
-      editor.on('keyup', async (cm, _) => {
+      editor.on('keyup', async (cm, event) => {
         const cursor = cm.getCursor()
         const currentLineNumber = cursor.line
         const currentLine: string = cm.getLine(currentLineNumber)
+
+        // For now using ctrl+j/k
+        // TODO: Convert to ctrl+n/p
+        console.log(event)
+        if (event.ctrlKey) {
+          switch (event.key) {
+            case 'j':
+              // Down
+              console.log('down')
+              this.autocompleteView.selectNext()
+              break
+            case 'k':
+              // Up
+              console.log('up')
+              this.autocompleteView.selectPrevious()
+              break
+            case 'Enter':
+              // Use selected item
+              const [selected, replaceFrom] = this.autocompleteView.getSelectedAndPosition(currentLine, cursor)
+              cm.operation(() => {
+                cm.replaceRange(selected, replaceFrom, cursor)
+
+                const newCursorPosition = replaceFrom.ch + selected.length
+                const updatedCursor = {
+                  line: cursor.line,
+                  ch: newCursorPosition
+                }
+                cm.setCursor(updatedCursor)
+              })
+              this.autocompleteView.removeView()
+              break
+          }
+        }
 
         const updatedView = this.autocompleteView.updateView(cursor, currentLine)
 

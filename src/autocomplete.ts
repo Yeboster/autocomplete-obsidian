@@ -1,9 +1,13 @@
 export default class AutocompleteView {
   private view: HTMLElement
   private show: boolean
+  private suggestions: Array<string>
+  private currentText: string | undefined
+  private selectedIndex: number | undefined
 
   public constructor() {
     this.show = false
+    this.suggestions = []
   }
 
   public isShown() {
@@ -27,15 +31,53 @@ export default class AutocompleteView {
     // TODO: Find a diff approach instead of generating all again
     this.destroyView()
 
-    const text = this.autocompleteText(cursor, currentLine)
-    console.log('last line', text)
+    const text = this.lastWord(cursor.ch, currentLine)
 
-    // TODO: Generate results
+    if (text !== this.currentText) {
+      this.currentText = text
 
-    const view = this.generateView(text)
+      // TODO: Generate results
+      this.suggestions = [text, "hello", "world"]
+    }
+
+    const view = this.generateView(this.suggestions)
     this.view = view
 
     return this.view
+  }
+
+  public selectNext() {
+    if (this.selectedIndex >= 0) {
+      const increased = this.selectedIndex + 1
+      this.selectedIndex = increased >= this.suggestions.length ? 0 : increased
+    } else
+      this.selectedIndex = 0
+  }
+
+  public selectPrevious() {
+    if (this.selectedIndex >= 0) {
+      const decreased = this.selectedIndex - 1
+      this.selectedIndex = decreased < 0 ? this.suggestions.length - 1 : decreased
+    } else
+      this.selectedIndex = this.suggestions.length - 1
+  }
+
+  public getSelectedAndPosition(line: string, cursor: CodeMirror.Position): [string, CodeMirror.Position] {
+    const cursorPosition = cursor.ch
+
+    const wordIndex = this.lastWordIndex(cursorPosition, line)
+    const updatedCursorFrom = {
+      line: cursor.line,
+      ch: wordIndex
+    }
+
+    const selected = this.getSelected()
+
+    return [selected, updatedCursorFrom]
+  }
+
+  private getSelected() {
+    return this.suggestions[this.selectedIndex]
   }
 
   private destroyView() {
@@ -47,21 +89,26 @@ export default class AutocompleteView {
     this.view = null
   }
 
-  private generateView(autocompleteText: string) {
+  private generateView(suggestions: Array<string>) {
+    const suggestionsHtml = suggestions.map((tip, index) => {
+      const isSelected = this.selectedIndex === index
+      // TODO: Fix missing custom css styles and remove style hotfix
+      return `
+        <div id="suggestion-${index}" style="white-space: nowrap;" class="suggestion-item${isSelected ? ' is-selected' : ''}">
+          <div class="suggestion-content">${tip}</div>
+        </div>
+      `
+    })
     const viewString = `
        <div class="suggestion">
-        <div class="suggestion-item">
-          <div class="suggestion-content">
-            ${autocompleteText}
-          </div>
-        </div
+         ${suggestionsHtml.join('\n')}
        </div>
        <div class="prompt-instructions">
          <div class="prompt-instruction">
            <span>Autocomplete actions</span>
          </div>
        </div>
-     `
+    `
     const containerNode = document.createElement("div")
     containerNode.addClass("suggestion-container")
     containerNode.insertAdjacentHTML('beforeend', viewString)
@@ -71,17 +118,24 @@ export default class AutocompleteView {
     return containerNode
   }
 
+  private lastWordIndex(cursorAt: number, text: string): number {
+    let wordStartIndex = 0
 
-  private autocompleteText(cursor: CodeMirror.Position, currentLine: string): string | null {
-    const cursorPosition = cursor.ch
-    const words = currentLine.substring(0, cursorPosition).split(' ')
-    console.log('words', words)
-    let command: string | null = null
-    if (words.length > 0) {
-      const lastWord = words[words.length - 1]
-      if (lastWord.length > 0) command = lastWord
+    for (let index = cursorAt; index-- >= 0;) {
+      if (text[index] === ' ') {
+        wordStartIndex = index + 1 // Maintain space
+        break
+      }
     }
-    return command
+
+    return wordStartIndex
+  }
+
+  private lastWord(cursorPosition: number, currentLine: string): string | null {
+    const wordStartIndex = this.lastWordIndex(cursorPosition, currentLine)
+    const word = currentLine.substring(wordStartIndex, cursorPosition)
+
+    return word
   }
 
 }
