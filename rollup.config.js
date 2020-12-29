@@ -22,6 +22,11 @@ export default {
         { src: 'dist/main.js', dest: TEST_VAULT },
         { src: ['manifest.json', './src/assets/style.css'], dest: TEST_VAULT }
       ], flatten: true
+    }),
+    copy({
+      targets: [
+        { src: ['manifest.json', './src/assets/style.css'], dest: 'dist' }
+      ], flatten: true
     })
   ]
 };
