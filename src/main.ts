@@ -16,13 +16,25 @@ export default class AutocompletePlugin extends Plugin {
         key: " "
       }],
       callback: () => {
-        const autocomplete = this.autocompleteView
-        if (autocomplete.isShown())
-          autocomplete.removeView()
-        else {
-          const view = this.app.workspace.activeLeaf.view
-          if (view instanceof MarkdownView) {
-            const cursor = view.sourceMode.cmEditor.getCursor()
+        const view = this.app.workspace.activeLeaf.view
+        if (view instanceof MarkdownView) {
+          const autocomplete = this.autocompleteView
+          const editor = view.sourceMode.cmEditor
+
+          const keymaps: CodeMirror.KeyMap = {
+            "Ctrl-P": () => this.autocompleteView.selectPrevious(),
+            "Ctrl-N": () => this.autocompleteView.selectNext(),
+            Enter: (editor) => { this.selectSuggestion(editor) },
+            Esc: () => this.autocompleteView.removeView(),
+          }
+
+          if (autocomplete.isShown()) {
+            editor.removeKeyMap(keymaps)
+            autocomplete.removeView()
+          }
+          else {
+            editor.addKeyMap(keymaps)
+            const cursor = editor.getCursor()
             autocomplete.showView(cursor)
           }
         }
@@ -30,30 +42,10 @@ export default class AutocompletePlugin extends Plugin {
     })
 
     this.app.workspace.on('codemirror', (editor) => {
-      editor.on('keyup', async (cm, event) => {
+      editor.on('keyup', (cm) => {
         const cursor = cm.getCursor()
         const currentLineNumber = cursor.line
         const currentLine: string = cm.getLine(currentLineNumber)
-
-        // For now using ctrl+j/l
-        // TODO: Convert to ctrl+n/p
-        if (event.ctrlKey) {
-          switch (event.key) {
-            case 'j':
-              // Down
-              this.autocompleteView.selectNext()
-              break
-            // l instead of j because Ctrl+k in insert mode removes the content on the right
-            case 'l': 
-              // Up
-              this.autocompleteView.selectPrevious()
-              break
-            case 'Enter':
-              // Use selected item
-              this.selectSuggestion(cursor, cm)
-              break
-          }
-        }
 
         const updatedView = this.autocompleteView.updateView(currentLine, cursor)
 
@@ -63,17 +55,18 @@ export default class AutocompletePlugin extends Plugin {
     })
   }
 
-  private selectSuggestion(cursor: CodeMirror.Position, cm: CodeMirror.Editor) {
+  private selectSuggestion(editor: CodeMirror.Editor) {
+    const cursor = editor.getCursor()
     const [selected, replaceFrom, replaceTo] = this.autocompleteView.getSelectedAndPosition(cursor)
-    cm.operation(() => {
-      cm.replaceRange(selected, replaceFrom, replaceTo)
+    editor.operation(() => {
+      editor.replaceRange(selected, replaceFrom, replaceTo)
 
       const newCursorPosition = replaceFrom.ch + selected.length
       const updatedCursor = {
         line: cursor.line,
         ch: newCursorPosition
       }
-      cm.setCursor(updatedCursor)
+      editor.setCursor(updatedCursor)
     })
     this.autocompleteView.removeView()
   }
