@@ -25,6 +25,7 @@ export default class AutocompletePlugin extends Plugin {
             "Ctrl-P": () => this.autocompleteView.selectPrevious(),
             "Ctrl-N": () => this.autocompleteView.selectNext(),
             Enter: (editor) => { this.selectSuggestion(editor) },
+            Esc: () => this.autocompleteView.removeView(),
           }
 
           if (autocomplete.isShown()) {
