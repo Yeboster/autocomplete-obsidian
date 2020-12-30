@@ -134,15 +134,15 @@ export default class AutocompleteView {
       </div>
       <div class="prompt-instructions">
         <div class="prompt-instruction">
-          <span class="prompt-instruction-command">Ctrl+j</span>
+          <span class="prompt-instruction-command">Ctrl+N</span>
           <span>Next Suggestion</span>
         </div>
         <div class="prompt-instruction">
-          <span class="prompt-instruction-command">Ctrl+l</span>
+          <span class="prompt-instruction-command">Ctrl+P</span>
           <span>Previous Suggestion</span>
         </div>
         <div class="prompt-instruction">
-          <span class="prompt-instruction-command">Ctrl+Enter</span>
+          <span class="prompt-instruction-command">Enter</span>
           <span>Select Suggestion</span>
         </div>
       </div>
