@@ -36,15 +36,36 @@ export default class AutocompletePlugin extends Plugin {
     })
 
     this.app.workspace.on('codemirror', (editor) => {
-      editor.on('keyup', (cm) => {
+      editor.on('keyup', (cm, event) => {
         const cursor = cm.getCursor()
         const currentLineNumber = cursor.line
         const currentLine: string = cm.getLine(currentLineNumber)
+
+        // Need to update previous/next state here,
+        // otherwise the view is not updated correctly
+        // (Because I'm trying to cache it)
+        // Missing pattern matching with arrays :(
+        switch (`${event.ctrlKey} ${event.key}`) {
+          case "true p":
+            this.autocompleteView.selectPrevious()
+            break
+          case "true n":
+            this.autocompleteView.selectNext()
+            break
+          case "false ArrowUp":
+            this.autocompleteView.selectPrevious()
+            break
+          case "false ArrowDown":
+            this.autocompleteView.selectNext()
+            break
+        }
 
         const updatedView = this.autocompleteView.updateView(currentLine, cursor)
 
         if (updatedView)
           this.appendWidget(cm, updatedView)
+
+        this.autocompleteView.viewRenderedCallback()
       })
     })
   }
@@ -52,10 +73,12 @@ export default class AutocompletePlugin extends Plugin {
   private addKeybindings(editor: CodeMirror.Editor, add = true) {
     if (!this.keymaps)
       this.keymaps = {
-        "Ctrl-P": () => this.autocompleteView.selectPrevious(),
-        "Ctrl-N": () => this.autocompleteView.selectNext(),
-        Down: () => this.autocompleteView.selectNext(),
-        Up: () => this.autocompleteView.selectPrevious(),
+        // Override keymaps but manage them into "keyup" event
+        // Because need to update selectedIndex right before updating view
+        "Ctrl-P": () => {},
+        "Ctrl-N": () => {},
+        Down: () => {},
+        Up: () => {},
         Enter: (editor) => {
           this.selectSuggestion(editor)
           this.addKeybindings(editor, false)
@@ -68,8 +91,7 @@ export default class AutocompletePlugin extends Plugin {
 
     if (add)
       editor.addKeyMap(this.keymaps)
-    else
-      // Remove needs object reference
+    else // Remove needs object reference
       editor.removeKeyMap(this.keymaps)
   }
 
@@ -91,13 +113,12 @@ export default class AutocompletePlugin extends Plugin {
 
   async onunload() {
     this.autocompleteView.removeView()
-    console.log('Bye!')
+    console.log('Unloaded Obsidian Autocomplete')
   }
 
   private appendWidget(editor: CodeMirror.Editor, view: HTMLElement, scrollable = true) {
     const cursor = editor.getCursor()
 
     editor.addWidget({ch: cursor.ch, line: cursor.line}, view, scrollable)
-    this.autocompleteView.viewRenderedCallback()
   }
 }
