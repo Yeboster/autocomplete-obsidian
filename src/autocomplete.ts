@@ -1,11 +1,11 @@
-import Provider from './providers/provider'
+import {Completion, Provider} from './providers/provider'
 import LatexProvider from './providers/latex'
 
 export default class AutocompleteView {
   private view: HTMLElement
   private show: boolean
   private providers: Provider[]
-  private suggestions: Array<string>
+  private suggestions: Completion[]
   private selectedIndex?: number
   private currentText?: string
   private cursorAtTrigger?: CodeMirror.Position
@@ -42,10 +42,8 @@ export default class AutocompleteView {
       this.currentText = text
       shouldRerender = true
 
-      this.suggestions = this.providers.reduce((acc: string[], provider: Provider) => {
-        const s = provider.matchWith(text)
-        return acc.concat(s)
-      }, [])
+      this.suggestions = this.providers
+        .reduce((acc, provider) => acc.concat(provider.matchWith(text)), [])
       this.selectedIndex = 0
     }
 
@@ -119,7 +117,7 @@ export default class AutocompleteView {
 
     const selected = this.getSelected()
 
-    return [selected, updatedCursorFrom, updatedCursorTo]
+    return [selected.value, updatedCursorFrom, updatedCursorTo]
   }
 
   private getSelected() {
@@ -135,16 +133,18 @@ export default class AutocompleteView {
     this.view = null
   }
 
-  private generateView(suggestions: Array<string>) {
-    const suggestionsHtml = suggestions.map((tip, index) => {
+  private generateView(suggestions: Completion[]) {
+    const suggestionsHtml = suggestions.map((tip: Completion, index) => {
       const isSelected = this.selectedIndex === index
-      // TODO: Add provider category as div.suggestion-content > span.suggestion-flair
       return `
         <div id="suggestion-${index}" class="no-space-wrap suggestion-item${isSelected ? ' is-selected' : ''}">
-          <div class="suggestion-content">${tip}</div>
+          <div class="suggestion-content">
+          <span class="suggestion-flair">${tip.category}</span>
+          ${tip.value}
+          </div>
         </div>
       `
-    })
+    }, [])
     const viewString = `
       <div id="suggestion-list" class="suggestion">
         ${suggestionsHtml.join('\n')}
