@@ -139,9 +139,8 @@ export default class AutocompleteView {
     const suggestionsHtml = suggestions.map((tip, index) => {
       const isSelected = this.selectedIndex === index
       // TODO: Add provider category as div.suggestion-content > span.suggestion-flair
-      // TODO: Fix missing custom css styles and remove style hotfix
       return `
-        <div id="suggestion-${index}" style="white-space: nowrap;" class="suggestion-item${isSelected ? ' is-selected' : ''}">
+        <div id="suggestion-${index}" class="no-space-wrap suggestion-item${isSelected ? ' is-selected' : ''}">
           <div class="suggestion-content">${tip}</div>
         </div>
       `
