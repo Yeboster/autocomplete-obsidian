@@ -3,6 +3,7 @@ import AutocompleteView from './autocomplete'
 
 export default class AutocompletePlugin extends Plugin {
   autocompleteView: AutocompleteView
+  keymaps: CodeMirror.KeyMap
 
   async onload() {
     this.autocompleteView = new AutocompleteView()
@@ -21,19 +22,12 @@ export default class AutocompletePlugin extends Plugin {
           const autocomplete = this.autocompleteView
           const editor = view.sourceMode.cmEditor
 
-          const keymaps: CodeMirror.KeyMap = {
-            "Ctrl-P": () => this.autocompleteView.selectPrevious(),
-            "Ctrl-N": () => this.autocompleteView.selectNext(),
-            Enter: (editor) => { this.selectSuggestion(editor) },
-            Esc: () => this.autocompleteView.removeView(),
-          }
-
           if (autocomplete.isShown()) {
-            editor.removeKeyMap(keymaps)
+            this.addKeybindings(editor, false)
             autocomplete.removeView()
           }
           else {
-            editor.addKeyMap(keymaps)
+            this.addKeybindings(editor)
             const cursor = editor.getCursor()
             autocomplete.showView(cursor)
           }
@@ -53,6 +47,30 @@ export default class AutocompletePlugin extends Plugin {
           this.appendWidget(cm, updatedView)
       })
     })
+  }
+
+  private addKeybindings(editor: CodeMirror.Editor, add = true) {
+    if (!this.keymaps)
+      this.keymaps = {
+        "Ctrl-P": () => this.autocompleteView.selectPrevious(),
+        "Ctrl-N": () => this.autocompleteView.selectNext(),
+        Down: () => this.autocompleteView.selectNext(),
+        Up: () => this.autocompleteView.selectPrevious(),
+        Enter: (editor) => {
+          this.selectSuggestion(editor)
+          this.addKeybindings(editor, false)
+        },
+        Esc: (editor) => {
+          this.autocompleteView.removeView()
+          this.addKeybindings(editor, false)
+        },
+      }
+
+    if (add)
+      editor.addKeyMap(this.keymaps)
+    else
+      // Remove needs object reference
+      editor.removeKeyMap(this.keymaps)
   }
 
   private selectSuggestion(editor: CodeMirror.Editor) {
