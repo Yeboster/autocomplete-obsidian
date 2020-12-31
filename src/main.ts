@@ -22,6 +22,10 @@ export default class AutocompletePlugin extends Plugin {
           const autocomplete = this.autocompleteView
           const editor = view.sourceMode.cmEditor
 
+          // Do not open on vim normal mode
+          if (editor.getOption('keyMap') === 'vim')
+            return
+
           if (autocomplete.isShown()) {
             this.addKeybindings(editor, false)
             autocomplete.removeView()
