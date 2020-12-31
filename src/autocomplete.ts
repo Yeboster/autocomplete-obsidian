@@ -9,7 +9,7 @@ export default class AutocompleteView {
   private onClickCallback: (event: MouseEvent) => void
   private providers: Provider[]
   private suggestions: Completion[]
-  private selectedIndex?: number
+  private selected: {index: number, direction: "forward" | "backward" | "still"}
   private currentText?: string
   private cursorAtTrigger?: CodeMirror.Position
 
@@ -17,6 +17,7 @@ export default class AutocompleteView {
     this.show = false
     this.suggestions = []
     this.providers = [new LatexProvider()]
+    this.selected = {index: 0, direction: "still"}
   }
 
   public isShown() {
@@ -30,7 +31,7 @@ export default class AutocompleteView {
   }
 
   public removeView(editor: CodeMirror.Editor): void {
-    this.show = false
+    this.show = false 
     this.cursorAtTrigger = null
 
     this.addKeybindings(editor, false)
@@ -50,7 +51,7 @@ export default class AutocompleteView {
       this.suggestions = this.providers.reduce((acc, provider) =>
         acc.concat(provider.matchWith(text))
         , [])
-      this.selectedIndex = 0
+      this.selected = {index: 0, direction: "still"}
     }
 
     let cachedView = false
@@ -65,7 +66,7 @@ export default class AutocompleteView {
       this.view.children[0].children) {
       cachedView = true
       const children = this.view.children[0].children
-      const selectedIndex = this.selectedIndex
+      const selectedIndex = this.selected.index
       const selectedClass = 'is-selected'
 
       for (let index = 0; index < children.length; index++) {
@@ -133,7 +134,7 @@ export default class AutocompleteView {
           hintId = hintId.replace(hintIdPrefix, '')
           const id = parseInt(hintId)
           if (id && id > 0 && id < this.suggestions.length) {
-            this.selectedIndex = id
+            this.selected.index = id
             this.selectSuggestion(editor)
           }
         }
@@ -148,26 +149,47 @@ export default class AutocompleteView {
   }
 
   private scrollToSelected() {
-    // TODO: Improve scrolling behaviour
-    const suggestion = document.getElementById(`suggestion-${this.selectedIndex}`)
-    if (suggestion)
-      suggestion.scrollIntoView()
+    if (!this.view || this.suggestions.length === 0) return
+
+    // TODO: Improve scrolling with page size and boundaries
+
+    const parent = this.view.children[0]
+    const selectedIndex = this.selected.index
+    const child = parent.children[0]
+    if (child) {
+      let scrollAmount = child.scrollHeight * selectedIndex
+
+      switch (this.selected.direction) {
+        case "forward":
+          if (selectedIndex === 0) // End -> Start
+            parent.scrollTop = 0
+          else
+            parent.scrollTop = scrollAmount
+          break
+        case "backward":
+          if (selectedIndex === (this.suggestions.length - 1)) // End <- Start
+            parent.scrollTop = parent.scrollHeight
+          else
+            parent.scrollTop = scrollAmount
+          break
+      }
+    }
   }
 
   public selectNext() {
-    if (this.selectedIndex >= 0) {
-      const increased = this.selectedIndex + 1
-      this.selectedIndex = increased >= this.suggestions.length ? 0 : increased
-    } else
-      this.selectedIndex = 0
+    const increased = this.selected.index + 1
+    this.selected = {
+      index: increased >= this.suggestions.length ? 0 : increased,
+      direction: "forward"
+    }
   }
 
   public selectPrevious() {
-    if (this.selectedIndex >= 0) {
-      const decreased = this.selectedIndex - 1
-      this.selectedIndex = decreased < 0 ? this.suggestions.length - 1 : decreased
-    } else
-      this.selectedIndex = this.suggestions.length - 1
+    const decreased = this.selected.index - 1
+    this.selected = {
+      index: decreased < 0 ? this.suggestions.length - 1 : decreased,
+      direction: "backward"
+    }
   }
 
   public selectSuggestion(editor: CodeMirror.Editor) {
@@ -198,7 +220,7 @@ export default class AutocompleteView {
       ch: textEndIndex
     }
 
-    const selected = this.suggestions[this.selectedIndex]
+    const selected = this.suggestions[this.selected.index]
 
     return [selected.value, updatedCursorFrom, updatedCursorTo]
   }
@@ -215,8 +237,9 @@ export default class AutocompleteView {
   }
 
   private generateView(suggestions: Completion[]) {
+    const selectedIndex = this.selected.index
     const suggestionsHtml = suggestions.map((tip: Completion, index) => {
-      const isSelected = this.selectedIndex === index
+      const isSelected = selectedIndex === index
       return `
         <div id="suggestion-${index}" class="no-space-wrap suggestion-item${isSelected ? ' is-selected' : ''}">
           <div id="suggestion-${index}" class="suggestion-content">
