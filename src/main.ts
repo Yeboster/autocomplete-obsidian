@@ -86,6 +86,8 @@ export default class AutocompletePlugin extends Plugin {
         Esc: (editor) => {
           this.autocompleteView.removeView()
           this.addKeybindings(editor, false)
+          if (editor.getOption('keyMap') === 'vim-insert')
+            editor.setOption('keyMap', 'vim')
         },
       }
 
