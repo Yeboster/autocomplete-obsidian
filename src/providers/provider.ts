@@ -1,8 +1,18 @@
-export default abstract class Provider {
+export abstract class Provider {
   abstract readonly category: string
   abstract readonly completions: Array<string>
 
-  matchWith(input: string): Array<string> {
-    return this.completions.filter(val => val.includes(input))
+  matchWith(input: string): Completion[] {
+    // TODO: Improve filtering with weights
+    const suggestions = this.completions.filter(val => val.includes(input))
+      .map(sugg => {
+        return {category: this.category, value: sugg}
+      })
+    return suggestions
   }
+}
+
+export interface Completion {
+  category: string,
+  value: string
 }

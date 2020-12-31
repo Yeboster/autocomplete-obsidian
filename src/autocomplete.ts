@@ -1,11 +1,11 @@
-import Provider from './providers/provider'
+import {Completion, Provider} from './providers/provider'
 import LatexProvider from './providers/latex'
 
 export default class AutocompleteView {
   private view: HTMLElement
   private show: boolean
   private providers: Provider[]
-  private suggestions: Array<string>
+  private suggestions: Completion[]
   private selectedIndex?: number
   private currentText?: string
   private cursorAtTrigger?: CodeMirror.Position
@@ -35,41 +35,57 @@ export default class AutocompleteView {
   public updateView(currentLine: string, cursor: CodeMirror.Position): HTMLElement | null {
     if (!this.show) return
 
-    // TODO: Find a diff approach instead of generating all again
-    this.destroyView()
-
     const text = this.completionWord(currentLine, cursor)
 
+    let shouldRerender = false
     if (text !== this.currentText) {
       this.currentText = text
+      shouldRerender = true
 
-      this.suggestions = this.providers.reduce((acc: string[], provider: Provider) => {
-        const s = provider.matchWith(text)
-        return acc.concat(s)
-      }, [])
+      this.suggestions = this.providers
+        .reduce((acc, provider) => acc.concat(provider.matchWith(text)), [])
       this.selectedIndex = 0
     }
 
-    const view = this.generateView(this.suggestions)
-    this.view = view
+    let cachedView = false
+    if (!this.view || shouldRerender) {
+      this.destroyView()
+      const view = this.generateView(this.suggestions)
+      this.view = view
+    } else if (this.view.children &&
+      this.view.children[0] &&
+      this.view.children[0].children) {
+      cachedView = true
+      const children = this.view.children[0].children
+      const selectedIndex = this.selectedIndex
+      const selectedClass = 'is-selected'
 
-    return this.view
+      for (let index = 0; index < children.length; index++) {
+        const child = children[index]
+        const classes = child.classList
+
+        if (index === selectedIndex) {
+          if (!classes.contains(selectedClass))
+            classes.add(selectedClass)
+        } else if (classes.contains(selectedClass))
+          classes.remove(selectedClass)
+      }
+    }
+
+    return cachedView ? null : this.view
   }
 
   public viewRenderedCallback() {
     // TODO: How to manage click on list ? 
     // Add event listener to every line ?
-
     this.scrollToSelected()
   }
 
   private scrollToSelected() {
-    // TODO: Remove hack
-    if (this.selectedIndex > 8) {
-      const suggestion = document.getElementById(`suggestion-${this.selectedIndex}`)
-      if (suggestion)
-        suggestion.scrollIntoView()
-    }
+    // TODO: Improve scrolling behaviour
+    const suggestion = document.getElementById(`suggestion-${this.selectedIndex}`)
+    if (suggestion)
+      suggestion.scrollIntoView()
   }
 
   public selectNext() {
@@ -101,7 +117,7 @@ export default class AutocompleteView {
 
     const selected = this.getSelected()
 
-    return [selected, updatedCursorFrom, updatedCursorTo]
+    return [selected.value, updatedCursorFrom, updatedCursorTo]
   }
 
   private getSelected() {
@@ -117,17 +133,18 @@ export default class AutocompleteView {
     this.view = null
   }
 
-  private generateView(suggestions: Array<string>) {
-    const suggestionsHtml = suggestions.map((tip, index) => {
+  private generateView(suggestions: Completion[]) {
+    const suggestionsHtml = suggestions.map((tip: Completion, index) => {
       const isSelected = this.selectedIndex === index
-      // TODO: Add provider category as div.suggestion-content > span.suggestion-flair
-      // TODO: Fix missing custom css styles and remove style hotfix
       return `
-        <div id="suggestion-${index}" style="white-space: nowrap;" class="suggestion-item${isSelected ? ' is-selected' : ''}">
-          <div class="suggestion-content">${tip}</div>
+        <div id="suggestion-${index}" class="no-space-wrap suggestion-item${isSelected ? ' is-selected' : ''}">
+          <div class="suggestion-content">
+          <span class="suggestion-flair">${tip.category}</span>
+          ${tip.value}
+          </div>
         </div>
       `
-    })
+    }, [])
     const viewString = `
       <div id="suggestion-list" class="suggestion">
         ${suggestionsHtml.join('\n')}
