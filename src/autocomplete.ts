@@ -33,6 +33,7 @@ export default class AutocompleteView {
   public removeView(editor: CodeMirror.Editor): void {
     this.show = false 
     this.cursorAtTrigger = null
+    this.selected = {index: 0, direction: "still"}
 
     this.addKeybindings(editor, false)
     this.destroyView(editor)
