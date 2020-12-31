@@ -54,6 +54,8 @@ export default class AutocompletePlugin extends Plugin {
       this.keymaps = {
         "Ctrl-P": () => this.autocompleteView.selectPrevious(),
         "Ctrl-N": () => this.autocompleteView.selectNext(),
+        Down: () => this.autocompleteView.selectNext(),
+        Up: () => this.autocompleteView.selectPrevious(),
         Enter: (editor) => {
           this.selectSuggestion(editor)
           this.addKeybindings(editor, false)
