@@ -31,7 +31,7 @@ export default class AutocompleteView {
   }
 
   public removeView(editor: CodeMirror.Editor): void {
-    this.show = false 
+    this.show = false
     this.cursorAtTrigger = null
     this.selected = {index: 0, direction: "still"}
 
@@ -108,7 +108,12 @@ export default class AutocompleteView {
           this.removeView(editor)
           this.addKeybindings(editor, false)
           if (editor.getOption('keyMap') === 'vim-insert')
-            editor.setOption('keyMap', 'vim')
+            editor.operation(() => {
+              // https://github.com/codemirror/CodeMirror/blob/bd37a96d362b8d92895d3960d569168ec39e4165/keymap/vim.js#L5341
+              const vim = editor.state.vim
+              vim.insertMode = false
+              editor.setOption('keyMap', 'vim')
+            })
         },
       }
 
