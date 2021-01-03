@@ -1,6 +1,6 @@
 {
   "id": "obsidian-autocomplete-plugin",
-  "name": "Obsidian Autocomplete",
+  "name": "Autocomplete",
   "version": "0.0.1",
   "minAppVersion": "0.9.20",
   "description": "This provides text autocomplete based on context.",
