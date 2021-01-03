@@ -1,12 +1,10 @@
 {
   "id": "obsidian-autocomplete-plugin",
   "name": "Autocomplete",
-  "version": "0.0.1",
-  "minAppVersion": "0.9.20",
-  "description": "This provides text autocomplete based on context.",
+  "version": "0.5.0",
+  "minAppVersion": "0.10.1",
+  "description": "This plugin provides a text autocomplete feature to enhance typing speed.",
   "author": "Yeboster",
   "authorUrl": "https://github.com/Yeboster/",
-  "isDesktopOnly": false,
-  "js": "main.js",
-  "css": "style.css"
+  "isDesktopOnly": false
 }
