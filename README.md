@@ -1,7 +1,7 @@
 # Autocomplete Obsidian Plugin
 This plugin provides a text autocomplete feature to enhance typing speed.
 
-![Preview](https://github.com/Yeboster/autocomplete-obsidian)
+![Preview](https://media.giphy.com/media/UYWT3tGmpFaR2Zihfm/giphy.gif)
 
 > The plugin is still WIP, so if you encounter bugs please open an issue.
 
