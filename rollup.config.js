@@ -3,6 +3,7 @@ import {nodeResolve} from '@rollup/plugin-node-resolve';
 import commonjs from '@rollup/plugin-commonjs';
 import copy from 'rollup-plugin-copy';
 const TEST_VAULT = 'test-vault/.obsidian/plugins/autocomplete-obsidian';
+const STYLES_FILE = './src/assets/styles.css'
 
 export default {
   input: './src/main.ts',
@@ -20,7 +21,12 @@ export default {
     copy({
       targets: [
         { src: 'dist/main.js', dest: TEST_VAULT },
-        { src: ['manifest.json', './src/assets/style.css'], dest: TEST_VAULT }
+        { src: ['manifest.json', STYLES_FILE], dest: TEST_VAULT }
+      ], flatten: true
+    }),
+    copy({
+      targets: [
+        { src: ['manifest.json', STYLES_FILE], dest: 'dist' }
       ], flatten: true
     })
   ]
