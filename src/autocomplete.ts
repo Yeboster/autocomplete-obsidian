@@ -85,10 +85,65 @@ export default class AutocompleteView {
     return cachedView ? null : this.view
   }
 
-  public viewRenderedCallback() {
-    // TODO: How to manage click on list ? 
-    // Add event listener to every line ?
-    this.scrollToSelected()
+  public scrollToSelected() {
+    if (!this.view || this.suggestions.length === 0) return
+
+    // TODO: Improve scrolling with page size and boundaries
+
+    const parent = this.view.children[0]
+    const selectedIndex = this.selected.index
+    const child = parent.children[0]
+    if (child) {
+      let scrollAmount = child.scrollHeight * selectedIndex
+
+      switch (this.selected.direction) {
+        case "forward":
+          if (selectedIndex === 0) // End -> Start
+            parent.scrollTop = 0
+          else
+            parent.scrollTop = scrollAmount
+          break
+        case "backward":
+          if (selectedIndex === (this.suggestions.length - 1)) // End <- Start
+            parent.scrollTop = parent.scrollHeight
+          else
+            parent.scrollTop = scrollAmount
+          break
+      }
+    }
+  }
+
+  public selectNext() {
+    const increased = this.selected.index + 1
+    this.selected = {
+      index: increased >= this.suggestions.length ? 0 : increased,
+      direction: "forward"
+    }
+  }
+
+  public selectPrevious() {
+    const decreased = this.selected.index - 1
+    this.selected = {
+      index: decreased < 0 ? this.suggestions.length - 1 : decreased,
+      direction: "backward"
+    }
+  }
+
+  public selectSuggestion(editor: CodeMirror.Editor) {
+    const cursor = editor.getCursor()
+    const [selected, replaceFrom, replaceTo] = this.getSelectedAndPosition(cursor)
+    editor.operation(() => {
+      editor.replaceRange(selected, replaceFrom, replaceTo)
+
+      const newCursorPosition = replaceFrom.ch + selected.length
+      const updatedCursor = {
+        line: cursor.line,
+        ch: newCursorPosition
+      }
+      editor.setCursor(updatedCursor)
+    })
+    this.removeView(editor)
+    editor.focus()
   }
 
   private addKeybindings(editor: CodeMirror.Editor, add = true) {
@@ -154,67 +209,6 @@ export default class AutocompleteView {
     return view
   }
 
-  private scrollToSelected() {
-    if (!this.view || this.suggestions.length === 0) return
-
-    // TODO: Improve scrolling with page size and boundaries
-
-    const parent = this.view.children[0]
-    const selectedIndex = this.selected.index
-    const child = parent.children[0]
-    if (child) {
-      let scrollAmount = child.scrollHeight * selectedIndex
-
-      switch (this.selected.direction) {
-        case "forward":
-          if (selectedIndex === 0) // End -> Start
-            parent.scrollTop = 0
-          else
-            parent.scrollTop = scrollAmount
-          break
-        case "backward":
-          if (selectedIndex === (this.suggestions.length - 1)) // End <- Start
-            parent.scrollTop = parent.scrollHeight
-          else
-            parent.scrollTop = scrollAmount
-          break
-      }
-    }
-  }
-
-  public selectNext() {
-    const increased = this.selected.index + 1
-    this.selected = {
-      index: increased >= this.suggestions.length ? 0 : increased,
-      direction: "forward"
-    }
-  }
-
-  public selectPrevious() {
-    const decreased = this.selected.index - 1
-    this.selected = {
-      index: decreased < 0 ? this.suggestions.length - 1 : decreased,
-      direction: "backward"
-    }
-  }
-
-  public selectSuggestion(editor: CodeMirror.Editor) {
-    const cursor = editor.getCursor()
-    const [selected, replaceFrom, replaceTo] = this.getSelectedAndPosition(cursor)
-    editor.operation(() => {
-      editor.replaceRange(selected, replaceFrom, replaceTo)
-
-      const newCursorPosition = replaceFrom.ch + selected.length
-      const updatedCursor = {
-        line: cursor.line,
-        ch: newCursorPosition
-      }
-      editor.setCursor(updatedCursor)
-    })
-    this.removeView(editor)
-    editor.focus()
-  }
-
   private getSelectedAndPosition(cursor: CodeMirror.Position): [string, CodeMirror.Position, CodeMirror.Position] {
     const textEndIndex = cursor.ch
     const updatedCursorFrom = {
@@ -236,10 +230,16 @@ export default class AutocompleteView {
 
     this.addClickListener(this.view, editor, false)
 
-    const parentNode = this.view.parentNode
-    if (parentNode)
-      parentNode.removeChild(this.view)
-    this.view = null
+    try {
+      const parentNode = this.view.parentNode
+      if (parentNode) {
+        const removed = parentNode.removeChild(this.view)
+        if (removed)
+          this.view = null
+      }
+    } catch (e) {
+      console.error(`Cannot destroy view. Reason: ${e}`)
+    }
   }
 
   private generateView(suggestions: Completion[]) {
