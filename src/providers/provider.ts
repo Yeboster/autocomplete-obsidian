@@ -8,6 +8,8 @@ export abstract class Provider {
       .map(sugg => {
         return {category: this.category, value: sugg}
       })
+      .sort((a, b) => a.value.length - b.value.length)
+
     return suggestions
   }
 }
