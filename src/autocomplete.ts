@@ -62,23 +62,16 @@ export default class AutocompleteView {
       this.addClickListener(view, editor)
 
       this.view = view
-    } else if (this.view.children &&
-      this.view.children[0] &&
-      this.view.children[0].children) {
+    } else if (this.view.firstChild && this.view.firstChild.nextSibling) { // Somehow first child is in nextSibling
       cachedView = true
-      const children = this.view.children[0].children
+      const children = (this.view.firstChild.nextSibling as HTMLElement).children
       const selectedIndex = this.selected.index
-      const selectedClass = 'is-selected'
+
 
       for (let index = 0; index < children.length; index++) {
         const child = children[index]
-        const classes = child.classList
 
-        if (index === selectedIndex) {
-          if (!classes.contains(selectedClass))
-            classes.add(selectedClass)
-        } else if (classes.contains(selectedClass))
-          classes.remove(selectedClass)
+        child.toggleClass('is-selected', index === selectedIndex)
       }
     }
 
