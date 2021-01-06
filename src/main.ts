@@ -106,10 +106,6 @@ export default class AutocompletePlugin extends Plugin {
   private getCurrentEditor(): CodeMirror.Editor | null {
     const view = this.app.workspace.getActiveViewOfType(MarkdownView)
 
-    let editor = undefined
-    if (view)
-      editor = view.sourceMode.cmEditor
-
-    return editor
+    return view ? view.sourceMode.cmEditor : null
   }
 }
