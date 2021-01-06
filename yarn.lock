@@ -376,9 +376,9 @@ minimatch@^3.0.4:
   dependencies:
     brace-expansion "^1.1.7"
 
-"obsidian@https://github.com/obsidianmd/obsidian-api/tarball/master":
-  version "0.10.2"
-  resolved "https://github.com/obsidianmd/obsidian-api/tarball/master#58d88e75df55dd9f6902f51066536168535d95be"
+"obsidian@https://github.com/obsidianmd/obsidian-api/tarball/2e4ac7c8dd4d1b8ca4cf726eac75a935a3ea25d8":
+  version "0.10.0"
+  resolved "https://github.com/obsidianmd/obsidian-api/tarball/2e4ac7c8dd4d1b8ca4cf726eac75a935a3ea25d8#740d65fe84a4528e524a69cf48c24369b4261ab9"
   dependencies:
     "@types/codemirror" "0.0.98"
 

@@ -1,3 +1,6 @@
+# 0.5.3
+- Hardcode Obsidian API version to 0.10.0
+
 # 0.5.2
 - Remove listeners on unload
 - Use suggested methods of Obsidian API

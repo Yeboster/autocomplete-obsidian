@@ -1,6 +1,6 @@
 {
   "name": "autocomplete-obsidian",
-  "version": "0.5.2",
+  "version": "0.5.3",
   "description": "An Obsidian plugin to provide text autocomplete.",
   "main": "index.js",
   "author": "Yeboster <yeboster@gmail.com>",
@@ -15,7 +15,7 @@
     "@rollup/plugin-node-resolve": "^11.0.1",
     "@rollup/plugin-typescript": "^8.1.0",
     "@types/node": "^14.14.16",
-    "obsidian": "https://github.com/obsidianmd/obsidian-api/tarball/master",
+    "obsidian": "https://github.com/obsidianmd/obsidian-api/tarball/2e4ac7c8dd4d1b8ca4cf726eac75a935a3ea25d8",
     "rollup": "^2.35.1",
     "rollup-plugin-copy": "^3.3.0",
     "tslib": "^2.0.3",
