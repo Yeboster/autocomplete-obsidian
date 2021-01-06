@@ -23,11 +23,7 @@ export default class AutocompletePlugin extends Plugin {
         if (editor) {
           const autocomplete = this.autocompleteView
 
-          if (!this.lastUsedEditor) this.lastUsedEditor = editor
-          if (editor !== this.lastUsedEditor) {
-            autocomplete.removeView(this.lastUsedEditor)
-            this.lastUsedEditor = editor
-          }
+          this.updateEditorIfChanged(editor, autocomplete)
 
           // Do not open on vim normal mode
           if (editor.getOption('keyMap') === 'vim') return
@@ -41,9 +37,14 @@ export default class AutocompletePlugin extends Plugin {
     })
 
     this.keyupListener = (cm: CodeMirror.Editor, event: KeyboardEvent) => {
+      const autocomplete = this.autocompleteView
+
+      this.updateEditorIfChanged(cm, autocomplete)
+
       const cursor = cm.getCursor()
       const currentLineNumber = cursor.line
       const currentLine: string = cm.getLine(currentLineNumber)
+
 
       // Need to update previous/next state here,
       // otherwise the view is not updated correctly
@@ -51,25 +52,25 @@ export default class AutocompletePlugin extends Plugin {
       // Missing pattern matching with arrays :(
       switch (`${event.ctrlKey} ${event.key}`) {
         case "true p":
-          this.autocompleteView.selectPrevious()
+          autocomplete.selectPrevious()
           break
         case "true n":
-          this.autocompleteView.selectNext()
+          autocomplete.selectNext()
           break
         case "false ArrowUp":
-          this.autocompleteView.selectPrevious()
+          autocomplete.selectPrevious()
           break
         case "false ArrowDown":
-          this.autocompleteView.selectNext()
+          autocomplete.selectNext()
           break
       }
 
-      const autocompleteView = this.autocompleteView.getView(currentLine, cm)
+      const autocompleteView = autocomplete.getView(currentLine, cm)
 
       if (autocompleteView)
         this.appendWidget(cm, autocompleteView)
 
-      this.autocompleteView.scrollToSelected()
+      autocomplete.scrollToSelected()
     }
 
     this.registerCodeMirror(editor => {
@@ -86,6 +87,15 @@ export default class AutocompletePlugin extends Plugin {
     console.log('Unloaded Obsidian Autocomplete')
   }
 
+  private updateEditorIfChanged(editor: CodeMirror.Editor, autocomplete: AutocompleteView) {
+    if (!this.lastUsedEditor)
+      this.lastUsedEditor = editor
+
+    if (editor !== this.lastUsedEditor) {
+      autocomplete.removeView(this.lastUsedEditor)
+      this.lastUsedEditor = editor
+    }
+  }
 
   private appendWidget(editor: CodeMirror.Editor, view: HTMLElement, scrollable = true) {
     const cursor = editor.getCursor()
