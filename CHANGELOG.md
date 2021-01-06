@@ -1,3 +1,6 @@
+- Check current editor also on keyup event
+- Github workflow: Properly fix bash if else statement
+
 # 0.5.4
 - Fix github release workflow to work with sh.
 
