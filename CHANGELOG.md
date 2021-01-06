@@ -1,3 +1,6 @@
+- Properly unhook clickListener
+- Minor refactoring
+
 # 0.5.5
 - Check current editor also on keyup event
 - Github workflow: Properly fix bash if else statement
