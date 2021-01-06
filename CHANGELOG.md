@@ -1,3 +1,6 @@
+# 0.5.7
+- Use `firstElementChild` instead of `firstChild`
+
 # 0.5.6
 - Properly unhook clickListener
 - Minor refactoring
