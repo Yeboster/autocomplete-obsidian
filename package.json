@@ -1,6 +1,6 @@
 {
   "name": "autocomplete-obsidian",
-  "version": "0.5.5",
+  "version": "0.5.6",
   "description": "An Obsidian plugin to provide text autocomplete.",
   "main": "index.js",
   "author": "Yeboster <yeboster@gmail.com>",

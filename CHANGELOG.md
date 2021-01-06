@@ -1,3 +1,4 @@
+# 0.5.6
 - Properly unhook clickListener
 - Minor refactoring
 
