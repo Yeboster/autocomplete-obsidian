@@ -7,8 +7,8 @@ This plugin provides a text autocomplete feature to enhance typing speed.
 
 ## Features
 There are the current and planned features:
-- [x] Triggers with `ctrl+space` or `Toggle Autocomplete` command
-- [x] Change suggestion with `Ctrl-n/p` and select with `enter`
+- [x] Trigger autocomplete with `ctrl+space` or `Toggle Autocomplete` command
+- [x] Change suggestion with `Ctrl-n/p` or `up/down arrows` and select with `enter`
 - [x] Autocomplete view style as Obsidian
 - [x] Supports multiple autocomplete providers (for now Latex)
 - [x] Seamless integration with vim mode
