@@ -24,9 +24,8 @@ jobs:
       id: build
       run: | 
         yarn install
-        yarn run build --if-present
-        # Extract latest changelog
-        awk 'NR!=1' CHANGELOG.md | while read i; do if [[ "$i" != "" ]]; then echo "$i"; else; break; fi; done > RELEASE_CHANGELOG.md
+        yarn run build
+        awk 'NR!=1' CHANGELOG.md | while read i; do if [[ "$i" != "" ]]; then echo "$i" else; break; fi; done > RELEASE_CHANGELOG.md
         echo "::set-output name=tag_name::$(git tag --sort version:refname | tail -n 1)"
     - name: Create Release
       id: create_release
