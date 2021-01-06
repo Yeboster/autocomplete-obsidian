@@ -62,15 +62,13 @@ export default class AutocompleteView {
       this.addClickListener(view, editor)
 
       this.view = view
-    } else if (this.view.firstChild && this.view.firstChild.nextSibling) { // Somehow first child is in nextSibling
+    } else if (this.view.firstElementChild) {
       cachedView = true
-      const children = (this.view.firstChild.nextSibling as HTMLElement).children
+      const children = this.view.firstElementChild.children
       const selectedIndex = this.selected.index
-
 
       for (let index = 0; index < children.length; index++) {
         const child = children[index]
-
         child.toggleClass('is-selected', index === selectedIndex)
       }
     }
