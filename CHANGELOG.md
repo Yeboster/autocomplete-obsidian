@@ -1,3 +1,6 @@
+# 0.5.4
+- Fix github release workflow to work with sh.
+
 # 0.5.3
 - Hardcode Obsidian API version to 0.10.0
 
