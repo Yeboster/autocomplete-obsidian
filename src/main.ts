@@ -81,7 +81,7 @@ export default class AutocompletePlugin extends Plugin {
   async onunload() {
     const workspace = this.app.workspace
     workspace.iterateCodeMirrors(cm => {
-      cm.off('keyup', this.keyupListener.bind(this))
+      cm.off('keyup', this.keyupListener)
       this.autocompleteView.removeView(cm)
     })
     console.log('Unloaded Obsidian Autocomplete')
@@ -106,10 +106,6 @@ export default class AutocompletePlugin extends Plugin {
   private getCurrentEditor(): CodeMirror.Editor | null {
     const view = this.app.workspace.getActiveViewOfType(MarkdownView)
 
-    let editor = undefined
-    if (view)
-      editor = view.sourceMode.cmEditor
-
-    return editor
+    return view ? view.sourceMode.cmEditor : null
   }
 }
