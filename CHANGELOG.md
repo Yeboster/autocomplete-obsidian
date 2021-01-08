@@ -1,3 +1,6 @@
+# 0.5.8
+- Added Latex mathcal suggestion. (#1)
+
 # 0.5.7
 - Use `firstElementChild` instead of `firstChild`
 
