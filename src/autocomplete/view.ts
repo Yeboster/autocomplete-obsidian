@@ -35,7 +35,7 @@ export function generateView(suggestions: Completion[], selectedIndex: number) {
     `
   const containerNode = document.createElement('div')
   if (suggestionsHtml.length > 0) {
-    containerNode.addClass('suggestion-container')
+    containerNode.classList.add('suggestion-container')
     containerNode.insertAdjacentHTML('beforeend', viewString)
   }
 
