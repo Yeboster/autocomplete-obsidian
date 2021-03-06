@@ -14,13 +14,26 @@ export default class AutocompletePlugin extends Plugin {
       new AutocompleteSettings(),
       await this.loadData()
     )
-
     this.addSettingTab(new AutocompleteSettingsTab(this.app, this))
 
     if (!this.settings.enabled) return
 
     this.autocompleteView = new AutocompleteView(this.settings)
+    this.addCommands()
+    this.enable()
+  }
 
+  async onunload() {
+    console.log('Unloaded Obsidian Autocomplete')
+    this.disable()
+  }
+
+  async refresh() {
+    this.disable()
+    this.enable()
+  }
+
+  addCommands() {
     this.addCommand({
       id: 'autocomplete-toggle',
       name: 'Toggle Autocomplete',
@@ -48,18 +61,6 @@ export default class AutocompletePlugin extends Plugin {
         }
       },
     })
-
-    this.enable()
-  }
-
-  async onunload() {
-    console.log('Unloaded Obsidian Autocomplete')
-    this.disable()
-  }
-
-  async refresh() {
-    this.disable()
-    this.enable()
   }
 
   enable() {
