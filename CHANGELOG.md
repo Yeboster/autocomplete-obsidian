@@ -1,3 +1,7 @@
+# 0.5.10
+- Forgot to update version files 🤦
+
+# 0.5.9
 - Add Settings
 - Refactor core
 
