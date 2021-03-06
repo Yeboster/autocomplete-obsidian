@@ -1,191 +1,147 @@
-import { Completion, Provider } from './providers/provider'
+import {
+  Direction,
+  defaultDirection,
+  generateView,
+  getRange,
+  appendWidget,
+  updateCachedView,
+  scrollTo,
+  completionWordIn,
+} from './autocomplete/view'
 import LatexProvider from './providers/latex'
+import { Completion, Provider } from './providers/provider'
 import { AutocompleteSettings } from './settings/settings'
 
-// TODO: Refactor business logic into module
-export default class AutocompleteView {
-  private view: HTMLElement
-  private show: boolean
-  private keymaps: CodeMirror.KeyMap
-  private onClickCallback: (event: MouseEvent) => void
+export class Autocomplete {
   private providers: Provider[]
   private suggestions: Completion[]
-  private selected: {
-    index: number
-    direction: 'forward' | 'backward' | 'still'
-  }
-  private currentText?: string
+  private selected: Direction
+
+  private view: HTMLElement
   private cursorAtTrigger?: CodeMirror.Position
+  private lastCompletionWord?: string
+  private onClickCallback: (event: MouseEvent) => void
 
   private settings: AutocompleteSettings
 
-  public constructor(settings: AutocompleteSettings) {
+  constructor(settings: AutocompleteSettings) {
     this.settings = settings
-    this.show = false
-    this.suggestions = []
-    this.selected = { index: 0, direction: 'still' }
     this.loadProviders()
+    this.suggestions = []
+    this.selected = defaultDirection()
+    this.view = null
   }
 
-  public loadProviders() {
-    const providers = []
-    if (this.settings.latexProvider) providers.push(new LatexProvider())
-
-    this.providers = providers
+  public isShown(): boolean {
+    return this.view !== null
   }
 
-  public isShown() {
-    return this.show
-  }
-
-  public showView(editor: CodeMirror.Editor) {
-    this.addKeybindings(editor)
-    this.cursorAtTrigger = editor.getCursor()
-    this.show = true
-  }
-
-  public removeView(editor: CodeMirror.Editor): void {
-    this.show = false
-    this.cursorAtTrigger = null
-    this.selected = { index: 0, direction: 'still' }
-
-    this.addKeybindings(editor, false)
-    this.destroyView(editor)
-  }
-
-  public getView(
-    currentLine: string,
-    editor: CodeMirror.Editor
-  ): HTMLElement | null {
-    if (!this.show) return
-
-    const text = this.completionWord(currentLine, editor.getCursor())
-
-    let shouldRerender = false
-    if (text !== this.currentText) {
-      this.currentText = text
-      shouldRerender = true
-
-      this.suggestions = this.providers.reduce(
-        (acc, provider) => acc.concat(provider.matchWith(text)),
-        []
-      )
-      this.selected = { index: 0, direction: 'still' }
+  public toggleViewIn(editor: CodeMirror.Editor) {
+    const isEnabled = this.settings.enabled
+    if (this.isShown() || !isEnabled) {
+      this.cursorAtTrigger = null
+      this.removeViewFrom(editor)
+    } else if (isEnabled) {
+      this.cursorAtTrigger = editor.getCursor()
+      this.showViewIn(editor)
     }
+  }
 
-    let cachedView = false
-    if (!this.view || shouldRerender) {
-      this.destroyView(editor)
-      const view = this.generateView(this.suggestions)
-      this.addClickListener(view, editor)
+  public updateViewIn(editor: CodeMirror.Editor, event: KeyboardEvent) {
+    this.changeSelectedSuggestionFrom(event)
 
-      this.view = view
-    } else if (this.view.firstElementChild) {
-      cachedView = true
-      const children = this.view.firstElementChild.children
-      const selectedIndex = this.selected.index
+    const completionWord = completionWordIn(editor, this.cursorAtTrigger)
 
-      for (let index = 0; index < children.length; index++) {
-        const child = children[index]
-        child.toggleClass('is-selected', index === selectedIndex)
+    const recreate = completionWord !== this.lastCompletionWord
+    if (recreate) {
+      this.lastCompletionWord = completionWord
+      this.showViewIn(editor, completionWord)
+    } else updateCachedView(this.view, this.selected.index)
+
+    scrollTo(this.selected, this.view, this.suggestions.length)
+  }
+
+  public removeViewFrom(editor: CodeMirror.Editor) {
+    this.selected = defaultDirection()
+    this.removeKeyBindings(editor)
+
+    if (!this.view) return
+    this.addClickListener(this.view, editor, false)
+
+    try {
+      const parentNode = this.view.parentNode
+      if (parentNode) {
+        const removed = parentNode.removeChild(this.view)
+        if (removed) this.view = null
       }
-    }
-
-    return cachedView ? null : this.view
-  }
-
-  public scrollToSelected() {
-    if (!this.view || this.suggestions.length === 0) return
-
-    // TODO: Improve scrolling with page size and boundaries
-
-    const parent = this.view.children[0]
-    const selectedIndex = this.selected.index
-    const child = parent.children[0]
-    if (child) {
-      let scrollAmount = child.scrollHeight * selectedIndex
-
-      switch (this.selected.direction) {
-        case 'forward':
-          if (selectedIndex === 0)
-            // End -> Start
-            parent.scrollTop = 0
-          else parent.scrollTop = scrollAmount
-          break
-        case 'backward':
-          if (selectedIndex === this.suggestions.length - 1)
-            // End <- Start
-            parent.scrollTop = parent.scrollHeight
-          else parent.scrollTop = scrollAmount
-          break
-      }
+    } catch (e) {
+      console.error(`Cannot destroy view. Reason: ${e}`)
     }
   }
 
-  public selectNext() {
-    const increased = this.selected.index + 1
-    this.selected = {
-      index: increased >= this.suggestions.length ? 0 : increased,
-      direction: 'forward',
-    }
-  }
+  private showViewIn(editor: CodeMirror.Editor, completionWord: string = '') {
+    if (this.view) this.removeViewFrom(editor)
 
-  public selectPrevious() {
-    const decreased = this.selected.index - 1
-    this.selected = {
-      index: decreased < 0 ? this.suggestions.length - 1 : decreased,
-      direction: 'backward',
-    }
-  }
-
-  public selectSuggestion(editor: CodeMirror.Editor) {
-    const cursor = editor.getCursor()
-    const [selected, replaceFrom, replaceTo] = this.getSelectedAndPosition(
-      cursor
+    this.suggestions = this.providers.reduce(
+      (acc, provider) => acc.concat(provider.matchWith(completionWord)),
+      []
     )
-    editor.operation(() => {
-      editor.replaceRange(selected, replaceFrom, replaceTo)
 
-      const newCursorPosition = replaceFrom.ch + selected.length
-      const updatedCursor = {
-        line: cursor.line,
-        ch: newCursorPosition,
-      }
-      editor.setCursor(updatedCursor)
-    })
-    this.removeView(editor)
-    editor.focus()
+    this.addKeyBindings(editor)
+
+    this.view = generateView(this.suggestions, this.selected.index)
+    this.addClickListener(this.view, editor)
+    appendWidget(editor, this.view)
   }
 
-  private addKeybindings(editor: CodeMirror.Editor, add = true) {
-    if (!this.keymaps)
-      this.keymaps = {
-        // Override keymaps but manage them into "keyup" event
-        // Because need to update selectedIndex right before updating view
-        'Ctrl-P': () => {},
-        'Ctrl-N': () => {},
-        Down: () => {},
-        Up: () => {},
-        Enter: (editor) => {
-          this.selectSuggestion(editor)
-          this.addKeybindings(editor, false)
-        },
-        Esc: (editor) => {
-          this.removeView(editor)
-          this.addKeybindings(editor, false)
-          if (editor.getOption('keyMap') === 'vim-insert')
-            editor.operation(() => {
-              // https://github.com/codemirror/CodeMirror/blob/bd37a96d362b8d92895d3960d569168ec39e4165/keymap/vim.js#L5341
-              const vim = editor.state.vim
-              vim.insertMode = false
-              editor.setOption('keyMap', 'vim')
-            })
-        },
-      }
+  private changeSelectedSuggestionFrom(event: KeyboardEvent) {
+    switch (`${event.ctrlKey} ${event.key}`) {
+      case 'true p':
+      case 'false ArrowUp':
+        const decreased = this.selected.index - 1
+        this.selected = {
+          index: decreased < 0 ? this.suggestions.length - 1 : decreased,
+          direction: 'backward',
+        }
+        break
+      case 'true n':
+      case 'false ArrowDown':
+        const increased = this.selected.index + 1
+        this.selected = {
+          index: increased >= this.suggestions.length ? 0 : increased,
+          direction: 'forward',
+        }
+        break
+    }
+  }
 
-    if (add) editor.addKeyMap(this.keymaps)
-    // Remove needs object reference
-    else editor.removeKeyMap(this.keymaps)
+  private addKeyBindings(editor: CodeMirror.Editor) {
+    editor.addKeyMap(this.keyMaps)
+  }
+
+  private removeKeyBindings(editor: CodeMirror.Editor) {
+    editor.removeKeyMap(this.keyMaps)
+  }
+
+  private keyMaps = {
+    // Override code mirror default key maps
+    'Ctrl-P': () => {},
+    'Ctrl-N': () => {},
+    Down: () => {},
+    Up: () => {},
+    Enter: (editor: CodeMirror.Editor) => {
+      this.selectSuggestion(editor)
+    },
+    Esc: (editor: CodeMirror.Editor) => {
+      this.removeViewFrom(editor)
+      if (editor.getOption('keyMap') === 'vim-insert')
+        editor.operation(() => {
+          // https://github.com/codemirror/CodeMirror/blob/bd37a96d362b8d92895d3960d569168ec39e4165/keymap/vim.js#L5341
+          const vim = editor.state.vim
+          vim.insertMode = false
+          editor.setOption('keyMap', 'vim')
+        })
+    },
   }
 
   // TODO: Refactor
@@ -216,93 +172,32 @@ export default class AutocompleteView {
 
     if (add) view.addEventListener('click', this.onClickCallback)
     else view.removeEventListener('click', this.onClickCallback)
-
-    return view
   }
 
-  private getSelectedAndPosition(
-    cursor: CodeMirror.Position
-  ): [string, CodeMirror.Position, CodeMirror.Position] {
-    const textEndIndex = cursor.ch
-    const updatedCursorFrom = {
-      line: this.cursorAtTrigger.line,
-      ch: this.cursorAtTrigger.ch,
-    }
-    const updatedCursorTo = {
-      line: this.cursorAtTrigger.line,
-      ch: textEndIndex,
-    }
+  private selectSuggestion(editor: CodeMirror.Editor) {
+    const cursor = editor.getCursor()
+    const selectedValue = this.suggestions[this.selected.index].value
+    const [replaceFrom, replaceTo] = getRange(this.cursorAtTrigger, cursor.ch)
 
-    const selected = this.suggestions[this.selected.index]
+    editor.operation(() => {
+      editor.replaceRange(selectedValue, replaceFrom, replaceTo)
 
-    return [selected.value, updatedCursorFrom, updatedCursorTo]
-  }
-
-  private destroyView(editor: CodeMirror.Editor) {
-    if (!this.view) return
-
-    this.addClickListener(this.view, editor, false)
-
-    try {
-      const parentNode = this.view.parentNode
-      if (parentNode) {
-        const removed = parentNode.removeChild(this.view)
-        if (removed) this.view = null
+      const newCursorPosition = replaceFrom.ch + selectedValue.length
+      const updatedCursor = {
+        line: cursor.line,
+        ch: newCursorPosition,
       }
-    } catch (e) {
-      console.error(`Cannot destroy view. Reason: ${e}`)
-    }
+      editor.setCursor(updatedCursor)
+    })
+    // Need to remove it here because of focus
+    this.removeViewFrom(editor)
+    editor.focus()
   }
 
-  private generateView(suggestions: Completion[]) {
-    const selectedIndex = this.selected.index
-    const suggestionsHtml = suggestions.map((tip: Completion, index) => {
-      const isSelected = selectedIndex === index
-      return `
-        <div id="suggestion-${index}" class="no-space-wrap suggestion-item${
-        isSelected ? ' is-selected' : ''
-      }">
-          <div id="suggestion-${index}" class="suggestion-content">
-          <span class="suggestion-flair">${tip.category}</span>
-          ${tip.value}
-          </div>
-        </div>
-      `
-    }, [])
-    const viewString = `
-      <div id="suggestion-list" class="suggestion">
-        ${suggestionsHtml.join('\n')}
-      </div>
-      <div class="prompt-instructions">
-        <div class="prompt-instruction">
-          <span class="prompt-instruction-command">Ctrl+N</span>
-          <span>Next Suggestion</span>
-        </div>
-        <div class="prompt-instruction">
-          <span class="prompt-instruction-command">Ctrl+P</span>
-          <span>Previous Suggestion</span>
-        </div>
-        <div class="prompt-instruction">
-          <span class="prompt-instruction-command">Enter</span>
-          <span>Select Suggestion</span>
-        </div>
-      </div>
-    `
-    const containerNode = document.createElement('div')
-    if (suggestionsHtml.length > 0) {
-      containerNode.addClass('suggestion-container')
-      containerNode.insertAdjacentHTML('beforeend', viewString)
-    }
+  private loadProviders() {
+    const providers = []
+    if (this.settings.latexProvider) providers.push(new LatexProvider())
 
-    return containerNode
-  }
-
-  private completionWord(
-    currentLine: string,
-    cursor: CodeMirror.Position
-  ): string | null {
-    const word = currentLine.substring(this.cursorAtTrigger.ch, cursor.ch)
-
-    return word
+    this.providers = providers
   }
 }
