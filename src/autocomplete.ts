@@ -7,7 +7,6 @@ import { generateView } from './autocomplete/view'
 export default class AutocompleteView {
   private view: HTMLElement
   private show: boolean
-  private keymaps: CodeMirror.KeyMap
   private onClickCallback: (event: MouseEvent) => void
   private providers: Provider[]
   private suggestions: Completion[]
@@ -40,7 +39,7 @@ export default class AutocompleteView {
   }
 
   public showView(editor: CodeMirror.Editor) {
-    this.addKeybindings(editor)
+    this.addKeyBindings(editor)
     this.cursorAtTrigger = editor.getCursor()
     this.show = true
   }
@@ -50,7 +49,7 @@ export default class AutocompleteView {
     this.cursorAtTrigger = null
     this.selected = { index: 0, direction: 'still' }
 
-    this.addKeybindings(editor, false)
+    this.removeKeyBindings(editor)
     this.destroyView(editor)
   }
 
@@ -158,35 +157,36 @@ export default class AutocompleteView {
     editor.focus()
   }
 
-  private addKeybindings(editor: CodeMirror.Editor, add = true) {
-    if (!this.keymaps)
-      this.keymaps = {
-        // Override keymaps but manage them into "keyup" event
-        // Because need to update selectedIndex right before updating view
-        'Ctrl-P': () => {},
-        'Ctrl-N': () => {},
-        Down: () => {},
-        Up: () => {},
-        Enter: (editor) => {
-          this.selectSuggestion(editor)
-          this.addKeybindings(editor, false)
-        },
-        Esc: (editor) => {
-          this.removeView(editor)
-          this.addKeybindings(editor, false)
-          if (editor.getOption('keyMap') === 'vim-insert')
-            editor.operation(() => {
-              // https://github.com/codemirror/CodeMirror/blob/bd37a96d362b8d92895d3960d569168ec39e4165/keymap/vim.js#L5341
-              const vim = editor.state.vim
-              vim.insertMode = false
-              editor.setOption('keyMap', 'vim')
-            })
-        },
-      }
+  private addKeyBindings(editor: CodeMirror.Editor) {
+    editor.addKeyMap(this.keyMaps)
+  }
 
-    if (add) editor.addKeyMap(this.keymaps)
-    // Remove needs object reference
-    else editor.removeKeyMap(this.keymaps)
+  private removeKeyBindings(editor: CodeMirror.Editor) {
+    editor.removeKeyMap(this.keyMaps)
+  }
+
+  private keyMaps = {
+    // Override keymaps but manage them into "keyup" event
+    // Because need to update selectedIndex right before updating view
+    'Ctrl-P': () => {},
+    'Ctrl-N': () => {},
+    Down: () => {},
+    Up: () => {},
+    Enter: (editor) => {
+      this.selectSuggestion(editor)
+      this.removeKeyBindings(editor)
+    },
+    Esc: (editor) => {
+      this.removeView(editor)
+      this.removeKeyBindings(editor)
+      if (editor.getOption('keyMap') === 'vim-insert')
+        editor.operation(() => {
+          // https://github.com/codemirror/CodeMirror/blob/bd37a96d362b8d92895d3960d569168ec39e4165/keymap/vim.js#L5341
+          const vim = editor.state.vim
+          vim.insertMode = false
+          editor.setOption('keyMap', 'vim')
+        })
+    },
   }
 
   // TODO: Refactor
