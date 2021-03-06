@@ -1,6 +1,7 @@
 import { Completion, Provider } from './providers/provider'
 import LatexProvider from './providers/latex'
 import { AutocompleteSettings } from './settings/settings'
+import { generateView } from './autocomplete/view'
 
 // TODO: Refactor business logic into module
 export default class AutocompleteView {
@@ -76,7 +77,7 @@ export default class AutocompleteView {
     let cachedView = false
     if (!this.view || shouldRerender) {
       this.destroyView(editor)
-      const view = this.generateView(this.suggestions)
+      const view = generateView(this.suggestions, this.selected.index)
       this.addClickListener(view, editor)
 
       this.view = view
@@ -252,49 +253,6 @@ export default class AutocompleteView {
     } catch (e) {
       console.error(`Cannot destroy view. Reason: ${e}`)
     }
-  }
-
-  private generateView(suggestions: Completion[]) {
-    const selectedIndex = this.selected.index
-    const suggestionsHtml = suggestions.map((tip: Completion, index) => {
-      const isSelected = selectedIndex === index
-      return `
-        <div id="suggestion-${index}" class="no-space-wrap suggestion-item${
-        isSelected ? ' is-selected' : ''
-      }">
-          <div id="suggestion-${index}" class="suggestion-content">
-          <span class="suggestion-flair">${tip.category}</span>
-          ${tip.value}
-          </div>
-        </div>
-      `
-    }, [])
-    const viewString = `
-      <div id="suggestion-list" class="suggestion">
-        ${suggestionsHtml.join('\n')}
-      </div>
-      <div class="prompt-instructions">
-        <div class="prompt-instruction">
-          <span class="prompt-instruction-command">Ctrl+N</span>
-          <span>Next Suggestion</span>
-        </div>
-        <div class="prompt-instruction">
-          <span class="prompt-instruction-command">Ctrl+P</span>
-          <span>Previous Suggestion</span>
-        </div>
-        <div class="prompt-instruction">
-          <span class="prompt-instruction-command">Enter</span>
-          <span>Select Suggestion</span>
-        </div>
-      </div>
-    `
-    const containerNode = document.createElement('div')
-    if (suggestionsHtml.length > 0) {
-      containerNode.addClass('suggestion-container')
-      containerNode.insertAdjacentHTML('beforeend', viewString)
-    }
-
-    return containerNode
   }
 
   private completionWord(
