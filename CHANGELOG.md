@@ -1,3 +1,4 @@
+# 0.5.9
 - Add Settings
 - Refactor core
 
