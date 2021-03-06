@@ -1,4 +1,8 @@
-import {Completion} from "../providers/provider"
+import { Completion } from '../providers/provider'
+
+export function defaultDirection(): Direction {
+  return { index: 0, direction: 'still' }
+}
 
 export function generateView(suggestions: Completion[], selectedIndex: number) {
   const suggestionsHtml = suggestions.map((tip: Completion, index) => {

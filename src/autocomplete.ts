@@ -1,7 +1,7 @@
 import { Completion, Provider } from './providers/provider'
 import LatexProvider from './providers/latex'
 import { AutocompleteSettings } from './settings/settings'
-import { generateView } from './autocomplete/view'
+import { defaultDirection, generateView } from './autocomplete/view'
 
 // TODO: Refactor business logic into module
 export default class AutocompleteView {
@@ -10,10 +10,7 @@ export default class AutocompleteView {
   private onClickCallback: (event: MouseEvent) => void
   private providers: Provider[]
   private suggestions: Completion[]
-  private selected: {
-    index: number
-    direction: 'forward' | 'backward' | 'still'
-  }
+  private selected: Direction
   private currentText?: string
   private cursorAtTrigger?: CodeMirror.Position
 
@@ -23,7 +20,7 @@ export default class AutocompleteView {
     this.settings = settings
     this.show = false
     this.suggestions = []
-    this.selected = { index: 0, direction: 'still' }
+    this.selected = defaultDirection()
     this.loadProviders()
   }
 
@@ -47,7 +44,7 @@ export default class AutocompleteView {
   public removeView(editor: CodeMirror.Editor): void {
     this.show = false
     this.cursorAtTrigger = null
-    this.selected = { index: 0, direction: 'still' }
+    this.selected = defaultDirection()
 
     this.removeKeyBindings(editor)
     this.destroyView(editor)
@@ -70,7 +67,7 @@ export default class AutocompleteView {
         (acc, provider) => acc.concat(provider.matchWith(text)),
         []
       )
-      this.selected = { index: 0, direction: 'still' }
+      this.selected = defaultDirection()
     }
 
     let cachedView = false
@@ -138,7 +135,7 @@ export default class AutocompleteView {
     }
   }
 
-  public selectSuggestion(editor: CodeMirror.Editor) {
+  private selectSuggestion(editor: CodeMirror.Editor) {
     const cursor = editor.getCursor()
     const [selected, replaceFrom, replaceTo] = this.getSelectedAndPosition(
       cursor
