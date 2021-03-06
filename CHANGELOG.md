@@ -1,3 +1,7 @@
+# 0.5.9
+- Add Settings
+- Refactor core
+
 # 0.5.8
 - Added Latex mathcal suggestion. (#1)
 
