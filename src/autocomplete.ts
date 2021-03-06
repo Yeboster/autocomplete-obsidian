@@ -1,5 +1,6 @@
-import {Completion, Provider} from './providers/provider'
+import { Completion, Provider } from './providers/provider'
 import LatexProvider from './providers/latex'
+import { AutocompleteSettings } from './settings/settings'
 
 // TODO: Refactor business logic into module
 export default class AutocompleteView {
@@ -9,15 +10,28 @@ export default class AutocompleteView {
   private onClickCallback: (event: MouseEvent) => void
   private providers: Provider[]
   private suggestions: Completion[]
-  private selected: {index: number, direction: "forward" | "backward" | "still"}
+  private selected: {
+    index: number
+    direction: 'forward' | 'backward' | 'still'
+  }
   private currentText?: string
   private cursorAtTrigger?: CodeMirror.Position
 
-  public constructor() {
+  private settings: AutocompleteSettings
+
+  public constructor(settings: AutocompleteSettings) {
+    this.settings = settings
     this.show = false
     this.suggestions = []
-    this.providers = [new LatexProvider()]
-    this.selected = {index: 0, direction: "still"}
+    this.selected = { index: 0, direction: 'still' }
+    this.loadProviders()
+  }
+
+  public loadProviders() {
+    const providers = []
+    if (this.settings.latexProvider) providers.push(new LatexProvider())
+
+    this.providers = providers
   }
 
   public isShown() {
@@ -33,13 +47,16 @@ export default class AutocompleteView {
   public removeView(editor: CodeMirror.Editor): void {
     this.show = false
     this.cursorAtTrigger = null
-    this.selected = {index: 0, direction: "still"}
+    this.selected = { index: 0, direction: 'still' }
 
     this.addKeybindings(editor, false)
     this.destroyView(editor)
   }
 
-  public getView(currentLine: string, editor: CodeMirror.Editor): HTMLElement | null {
+  public getView(
+    currentLine: string,
+    editor: CodeMirror.Editor
+  ): HTMLElement | null {
     if (!this.show) return
 
     const text = this.completionWord(currentLine, editor.getCursor())
@@ -49,10 +66,11 @@ export default class AutocompleteView {
       this.currentText = text
       shouldRerender = true
 
-      this.suggestions = this.providers.reduce((acc, provider) =>
-        acc.concat(provider.matchWith(text))
-        , [])
-      this.selected = {index: 0, direction: "still"}
+      this.suggestions = this.providers.reduce(
+        (acc, provider) => acc.concat(provider.matchWith(text)),
+        []
+      )
+      this.selected = { index: 0, direction: 'still' }
     }
 
     let cachedView = false
@@ -88,17 +106,17 @@ export default class AutocompleteView {
       let scrollAmount = child.scrollHeight * selectedIndex
 
       switch (this.selected.direction) {
-        case "forward":
-          if (selectedIndex === 0) // End -> Start
+        case 'forward':
+          if (selectedIndex === 0)
+            // End -> Start
             parent.scrollTop = 0
-          else
-            parent.scrollTop = scrollAmount
+          else parent.scrollTop = scrollAmount
           break
-        case "backward":
-          if (selectedIndex === (this.suggestions.length - 1)) // End <- Start
+        case 'backward':
+          if (selectedIndex === this.suggestions.length - 1)
+            // End <- Start
             parent.scrollTop = parent.scrollHeight
-          else
-            parent.scrollTop = scrollAmount
+          else parent.scrollTop = scrollAmount
           break
       }
     }
@@ -108,7 +126,7 @@ export default class AutocompleteView {
     const increased = this.selected.index + 1
     this.selected = {
       index: increased >= this.suggestions.length ? 0 : increased,
-      direction: "forward"
+      direction: 'forward',
     }
   }
 
@@ -116,20 +134,22 @@ export default class AutocompleteView {
     const decreased = this.selected.index - 1
     this.selected = {
       index: decreased < 0 ? this.suggestions.length - 1 : decreased,
-      direction: "backward"
+      direction: 'backward',
     }
   }
 
   public selectSuggestion(editor: CodeMirror.Editor) {
     const cursor = editor.getCursor()
-    const [selected, replaceFrom, replaceTo] = this.getSelectedAndPosition(cursor)
+    const [selected, replaceFrom, replaceTo] = this.getSelectedAndPosition(
+      cursor
+    )
     editor.operation(() => {
       editor.replaceRange(selected, replaceFrom, replaceTo)
 
       const newCursorPosition = replaceFrom.ch + selected.length
       const updatedCursor = {
         line: cursor.line,
-        ch: newCursorPosition
+        ch: newCursorPosition,
       }
       editor.setCursor(updatedCursor)
     })
@@ -142,8 +162,8 @@ export default class AutocompleteView {
       this.keymaps = {
         // Override keymaps but manage them into "keyup" event
         // Because need to update selectedIndex right before updating view
-        "Ctrl-P": () => {},
-        "Ctrl-N": () => {},
+        'Ctrl-P': () => {},
+        'Ctrl-N': () => {},
         Down: () => {},
         Up: () => {},
         Enter: (editor) => {
@@ -163,22 +183,24 @@ export default class AutocompleteView {
         },
       }
 
-    if (add)
-      editor.addKeyMap(this.keymaps)
-    else // Remove needs object reference
-      editor.removeKeyMap(this.keymaps)
+    if (add) editor.addKeyMap(this.keymaps)
+    // Remove needs object reference
+    else editor.removeKeyMap(this.keymaps)
   }
 
   // TODO: Refactor
-  private addClickListener(view: HTMLElement, editor: CodeMirror.Editor, add = true) {
+  private addClickListener(
+    view: HTMLElement,
+    editor: CodeMirror.Editor,
+    add = true
+  ) {
     if (!this.onClickCallback)
       this.onClickCallback = (event) => {
         const element = event.target as HTMLElement
         let hintId = element.id
         if (!hintId) {
           const parent = element.parentNode as HTMLElement
-          if (parent && parent.id)
-            hintId = parent.id
+          if (parent && parent.id) hintId = parent.id
         }
 
         const hintIdPrefix = 'suggestion-'
@@ -192,23 +214,23 @@ export default class AutocompleteView {
         }
       }
 
-    if (add)
-      view.addEventListener('click', this.onClickCallback)
-    else
-      view.removeEventListener('click', this.onClickCallback)
+    if (add) view.addEventListener('click', this.onClickCallback)
+    else view.removeEventListener('click', this.onClickCallback)
 
     return view
   }
 
-  private getSelectedAndPosition(cursor: CodeMirror.Position): [string, CodeMirror.Position, CodeMirror.Position] {
+  private getSelectedAndPosition(
+    cursor: CodeMirror.Position
+  ): [string, CodeMirror.Position, CodeMirror.Position] {
     const textEndIndex = cursor.ch
     const updatedCursorFrom = {
       line: this.cursorAtTrigger.line,
-      ch: this.cursorAtTrigger.ch
+      ch: this.cursorAtTrigger.ch,
     }
     const updatedCursorTo = {
       line: this.cursorAtTrigger.line,
-      ch: textEndIndex
+      ch: textEndIndex,
     }
 
     const selected = this.suggestions[this.selected.index]
@@ -225,8 +247,7 @@ export default class AutocompleteView {
       const parentNode = this.view.parentNode
       if (parentNode) {
         const removed = parentNode.removeChild(this.view)
-        if (removed)
-          this.view = null
+        if (removed) this.view = null
       }
     } catch (e) {
       console.error(`Cannot destroy view. Reason: ${e}`)
@@ -238,7 +259,9 @@ export default class AutocompleteView {
     const suggestionsHtml = suggestions.map((tip: Completion, index) => {
       const isSelected = selectedIndex === index
       return `
-        <div id="suggestion-${index}" class="no-space-wrap suggestion-item${isSelected ? ' is-selected' : ''}">
+        <div id="suggestion-${index}" class="no-space-wrap suggestion-item${
+        isSelected ? ' is-selected' : ''
+      }">
           <div id="suggestion-${index}" class="suggestion-content">
           <span class="suggestion-flair">${tip.category}</span>
           ${tip.value}
@@ -265,16 +288,19 @@ export default class AutocompleteView {
         </div>
       </div>
     `
-    const containerNode = document.createElement("div")
+    const containerNode = document.createElement('div')
     if (suggestionsHtml.length > 0) {
-      containerNode.addClass("suggestion-container")
+      containerNode.addClass('suggestion-container')
       containerNode.insertAdjacentHTML('beforeend', viewString)
     }
 
     return containerNode
   }
 
-  private completionWord(currentLine: string, cursor: CodeMirror.Position): string | null {
+  private completionWord(
+    currentLine: string,
+    cursor: CodeMirror.Position
+  ): string | null {
     const word = currentLine.substring(this.cursorAtTrigger.ch, cursor.ch)
 
     return word
