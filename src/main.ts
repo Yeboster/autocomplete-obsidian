@@ -1,10 +1,10 @@
 import { MarkdownView, Plugin } from 'obsidian'
-import AutocompleteView from './autocomplete'
+import { Autocomplete } from './autocomplete'
 import { AutocompleteSettings } from './settings/settings'
 import { AutocompleteSettingsTab } from './settings/settings-tab'
 
 export default class AutocompletePlugin extends Plugin {
-  private autocompleteView: AutocompleteView
+  private autocomplete: Autocomplete
   private lastUsedEditor: CodeMirror.Editor
   settings: AutocompleteSettings
 
@@ -18,9 +18,8 @@ export default class AutocompletePlugin extends Plugin {
 
     if (!this.settings.enabled) return
 
-    this.autocompleteView = new AutocompleteView(this.settings)
-    this.addCommands()
     this.enable()
+    this.addCommands()
   }
 
   async onunload() {
@@ -33,7 +32,7 @@ export default class AutocompletePlugin extends Plugin {
     this.enable()
   }
 
-  addCommands() {
+  private addCommands() {
     this.addCommand({
       id: 'autocomplete-toggle',
       name: 'Toggle Autocomplete',
@@ -47,92 +46,53 @@ export default class AutocompletePlugin extends Plugin {
         const editor = this.getCurrentEditor()
 
         if (editor) {
-          const autocomplete = this.autocompleteView
+          const autocomplete = this.autocomplete
 
           this.updateEditorIfChanged(editor, autocomplete)
 
           // Do not open on vim normal mode
           if (editor.getOption('keyMap') === 'vim') return
 
-          const isEnabled = this.settings.enabled
-          if (autocomplete.isShown() || !isEnabled)
-            autocomplete.removeView(editor)
-          else if (isEnabled) autocomplete.showView(editor)
+          this.autocomplete.toggleViewIn(editor)
         }
       },
     })
   }
 
   enable() {
-    this.autocompleteView.loadProviders()
+    this.autocomplete = new Autocomplete(this.settings)
     this.registerCodeMirror((editor) => {
-      editor.on('keyup', this.keyupListener)
+      editor.on('keyup', this.keyUpListener)
     })
   }
 
   disable() {
     const workspace = this.app.workspace
     workspace.iterateCodeMirrors((cm) => {
-      cm.off('keyup', this.keyupListener)
-      this.autocompleteView.removeView(cm)
+      cm.off('keyup', this.keyUpListener)
+      this.autocomplete.removeViewFrom(cm)
     })
   }
 
-  private keyupListener = (cm: CodeMirror.Editor, event: KeyboardEvent) => {
-    const autocomplete = this.autocompleteView
+  private keyUpListener = (editor: CodeMirror.Editor, event: KeyboardEvent) => {
+    const autocomplete = this.autocomplete
+    if (!autocomplete.isShown()) return
 
-    this.updateEditorIfChanged(cm, autocomplete)
+    this.updateEditorIfChanged(editor, autocomplete)
 
-    const cursor = cm.getCursor()
-    const currentLineNumber = cursor.line
-    const currentLine: string = cm.getLine(currentLineNumber)
-
-    // Need to update previous/next state here,
-    // otherwise the view is not updated correctly
-    // (Because I'm trying to cache it)
-    // Missing pattern matching with arrays :(
-    switch (`${event.ctrlKey} ${event.key}`) {
-      case 'true p':
-        autocomplete.selectPrevious()
-        break
-      case 'true n':
-        autocomplete.selectNext()
-        break
-      case 'false ArrowUp':
-        autocomplete.selectPrevious()
-        break
-      case 'false ArrowDown':
-        autocomplete.selectNext()
-        break
-    }
-
-    const autocompleteView = autocomplete.getView(currentLine, cm)
-
-    if (autocompleteView) this.appendWidget(cm, autocompleteView)
-
-    autocomplete.scrollToSelected()
+    this.autocomplete.updateViewIn(editor, event)
   }
 
   private updateEditorIfChanged(
     editor: CodeMirror.Editor,
-    autocomplete: AutocompleteView
+    autocomplete: Autocomplete
   ) {
     if (!this.lastUsedEditor) this.lastUsedEditor = editor
 
     if (editor !== this.lastUsedEditor) {
-      autocomplete.removeView(this.lastUsedEditor)
+      autocomplete.removeViewFrom(this.lastUsedEditor)
       this.lastUsedEditor = editor
     }
-  }
-
-  private appendWidget(
-    editor: CodeMirror.Editor,
-    view: HTMLElement,
-    scrollable = true
-  ) {
-    const cursor = editor.getCursor()
-
-    editor.addWidget({ ch: cursor.ch, line: cursor.line }, view, scrollable)
   }
 
   private getCurrentEditor(): CodeMirror.Editor | null {
