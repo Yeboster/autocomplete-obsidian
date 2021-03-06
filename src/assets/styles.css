@@ -1,3 +1,7 @@
 .no-space-wrap {
   white-space: nowrap;
 }
+
+.no-border-top {
+  border-top: 0;
+}

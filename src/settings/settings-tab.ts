@@ -26,12 +26,13 @@ export class AutocompleteSettingsTab extends PluginSettingTab {
       )
 
     // Providers
-    containerEl.createEl('h3', {
-      text: 'Providers',
-    })
-    containerEl.createEl('br')
+    new Setting(containerEl)
+      .setName('Text Providers')
+      .setDesc('The providers below suggest completions based on input. Be aware that enabling multiple providers can decrease performance.')
+      .setHeading()
 
     new Setting(containerEl)
+      .setClass('no-border-top')
       .setName('LaTex Provider')
       .setDesc('Toggle LaTex suggestions')
       .addToggle((cb) =>
