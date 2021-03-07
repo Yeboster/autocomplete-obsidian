@@ -1,3 +1,4 @@
+import { managePlaceholders } from './autocomplete/core'
 import {
   Direction,
   defaultDirection,
@@ -177,12 +178,18 @@ export class Autocomplete {
   private selectSuggestion(editor: CodeMirror.Editor) {
     const cursor = editor.getCursor()
     const selectedValue = this.suggestions[this.selected.index].value
+
+    // TODO: Convert to object
     const [replaceFrom, replaceTo] = getRange(this.cursorAtTrigger, cursor.ch)
 
-    editor.operation(() => {
-      editor.replaceRange(selectedValue, replaceFrom, replaceTo)
+    const { normalizedValue, newCursorPosition } = managePlaceholders(
+      selectedValue,
+      replaceFrom.ch
+    )
 
-      const newCursorPosition = replaceFrom.ch + selectedValue.length
+    editor.operation(() => {
+      editor.replaceRange(normalizedValue, replaceFrom, replaceTo)
+
       const updatedCursor = {
         line: cursor.line,
         ch: newCursorPosition,
