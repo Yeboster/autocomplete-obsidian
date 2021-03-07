@@ -2,7 +2,7 @@
 
 This plugin provides a text autocomplete feature to enhance typing speed.
 
-![Preview](https://media.giphy.com/media/UYWT3tGmpFaR2Zihfm/giphy.gif)
+![Preview](https://media.giphy.com/media/CFbhjfTLDPnUm45vje/giphy.gif)
 
 > The plugin is still WIP, so if you encounter bugs please open an [Github issue](https://github.com/Yeboster/autocomplete-obsidian/issues/new/choose) with the steps to reproduce it.
 
