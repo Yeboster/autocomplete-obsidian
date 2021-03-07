@@ -46,7 +46,7 @@ export class AutocompleteSettingsTab extends PluginSettingTab {
       .setName('Flow Provider')
       .setDesc('Learns as you type. For now limited to current session.')
       .addToggle((cb) =>
-        cb.setValue(this.plugin.settings.latexProvider).onChange((value) => {
+        cb.setValue(this.plugin.settings.flowProvider).onChange((value) => {
           this.plugin.settings.flowProvider = value
           this.plugin.saveData(this.plugin.settings)
           this.plugin.refresh()
