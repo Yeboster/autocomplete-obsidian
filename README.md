@@ -20,7 +20,8 @@ There are the current and planned features:
   - [ ] Multiple cursor placement on marks (Latex functions)
 - Text Providers:
   - [x] LaTex
-  - [ ] Flow (suggests words already written and/or in current file)
+  - [x] Flow (suggests words already written in the current session)
+  - [ ] Current file
   - [ ] Custom file
 - [ ] Snippets support (h3 -> ###)
 - [ ] Proper layout management (Improve autocomplete popup position)
