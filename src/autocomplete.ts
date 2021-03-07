@@ -10,7 +10,8 @@ import {
   updateCachedView,
   scrollTo,
 } from './autocomplete/view'
-import LatexProvider from './providers/latex'
+import { FlowProvider } from './providers/flow'
+import LaTexProvider from './providers/latex'
 import { Completion, Provider } from './providers/provider'
 import { AutocompleteSettings } from './settings/settings'
 
@@ -65,7 +66,7 @@ export class Autocomplete {
 
   public removeViewFrom(editor: CodeMirror.Editor) {
     this.selected = defaultDirection()
-    this.removeKeyBindings(editor)
+    editor.removeKeyMap(this.keyMaps)
 
     if (!this.view) return
     this.addClickListener(this.view, editor, false)
@@ -81,6 +82,18 @@ export class Autocomplete {
     }
   }
 
+  public updateProvidersFrom(event: KeyboardEvent, editor: CodeMirror.Editor) {
+    if (!event.ctrlKey && !event.altKey && event.key === ' ') {
+      const cursor = editor.getCursor()
+      const line = editor.getLine(cursor.line)
+      this.providers.forEach((provider) => {
+        // For now only FlowProvider
+        if (provider instanceof FlowProvider)
+          provider.addCompletionWord(line, cursor.ch - 1)
+      })
+    }
+  }
+
   private showViewIn(editor: CodeMirror.Editor, completionWord: string = '') {
     if (this.view) this.removeViewFrom(editor)
 
@@ -89,7 +102,7 @@ export class Autocomplete {
       []
     )
 
-    this.addKeyBindings(editor)
+    editor.addKeyMap(this.keyMaps)
 
     this.view = generateView(this.suggestions, this.selected.index)
     this.addClickListener(this.view, editor)
@@ -115,14 +128,6 @@ export class Autocomplete {
         }
         break
     }
-  }
-
-  private addKeyBindings(editor: CodeMirror.Editor) {
-    editor.addKeyMap(this.keyMaps)
-  }
-
-  private removeKeyBindings(editor: CodeMirror.Editor) {
-    editor.removeKeyMap(this.keyMaps)
   }
 
   private keyMaps = {
@@ -201,7 +206,8 @@ export class Autocomplete {
 
   private loadProviders() {
     const providers = []
-    if (this.settings.latexProvider) providers.push(new LatexProvider())
+    if (this.settings.latexProvider) providers.push(new LaTexProvider())
+    if (this.settings.flowProvider) providers.push(new FlowProvider())
 
     this.providers = providers
   }

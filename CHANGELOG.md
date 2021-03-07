@@ -1,5 +1,6 @@
 - Move cursor into placeholder, if any
 - Updated features plan in readme
+- Added Flow provider
 
 # 0.5.10
 - Forgot to update version files 🤦

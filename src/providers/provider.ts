@@ -1,6 +1,6 @@
 export abstract class Provider {
   abstract readonly category: string
-  abstract readonly completions: Array<string>
+  abstract completions: Array<string>
 
   static placeholder: string = '#{}'
 
