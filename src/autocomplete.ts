@@ -179,16 +179,13 @@ export class Autocomplete {
     const cursor = editor.getCursor()
     const selectedValue = this.suggestions[this.selected.index].value
 
-    // TODO: Convert to object
-    const [replaceFrom, replaceTo] = getRange(this.cursorAtTrigger, cursor.ch)
-
     const { normalizedValue, newCursorPosition } = managePlaceholders(
       selectedValue,
-      replaceFrom.ch
+      this.cursorAtTrigger!.ch
     )
 
     editor.operation(() => {
-      editor.replaceRange(normalizedValue, replaceFrom, replaceTo)
+      editor.replaceRange(normalizedValue, this.cursorAtTrigger, cursor)
 
       const updatedCursor = {
         line: cursor.line,
