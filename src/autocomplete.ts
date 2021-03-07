@@ -1,13 +1,14 @@
-import { managePlaceholders } from './autocomplete/core'
 import {
   Direction,
   defaultDirection,
+  completionWordIn,
+  managePlaceholders,
+} from './autocomplete/core'
+import {
   generateView,
-  getRange,
   appendWidget,
   updateCachedView,
   scrollTo,
-  completionWordIn,
 } from './autocomplete/view'
 import LatexProvider from './providers/latex'
 import { Completion, Provider } from './providers/provider'

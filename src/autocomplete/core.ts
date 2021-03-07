@@ -1,5 +1,25 @@
 import { Provider } from '../providers/provider'
 
+export type Direction = {
+  index: number
+  direction: 'forward' | 'backward' | 'still'
+}
+
+export function defaultDirection(): Direction {
+  return { index: 0, direction: 'still' }
+}
+
+export function completionWordIn(
+  editor: CodeMirror.Editor,
+  cursorAtTrigger?: CodeMirror.Position
+) {
+  const cursor = editor.getCursor()
+  const currentLine: string = editor.getLine(cursor.line)
+  const word = currentLine.substring(cursorAtTrigger?.ch || 0, cursor.ch)
+
+  return word
+}
+
 export function managePlaceholders(
   selectedValue: string,
   initialCursorIndex: number

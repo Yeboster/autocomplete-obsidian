@@ -1,13 +1,5 @@
 import { Completion } from '../providers/provider'
-
-export interface Direction {
-  index: number
-  direction: 'forward' | 'backward' | 'still'
-}
-
-export function defaultDirection(): Direction {
-  return { index: 0, direction: 'still' }
-}
+import { Direction } from './core'
 
 export function generateView(suggestions: Completion[], selectedIndex: number) {
   const suggestionsHtml = suggestions.map((tip: Completion, index) => {
@@ -92,17 +84,6 @@ export function scrollTo(
         break
     }
   }
-}
-
-export function completionWordIn(
-  editor: CodeMirror.Editor,
-  cursorAtTrigger?: CodeMirror.Position
-) {
-  const cursor = editor.getCursor()
-  const currentLine: string = editor.getLine(cursor.line)
-  const word = currentLine.substring(cursorAtTrigger?.ch || 0, cursor.ch)
-
-  return word
 }
 
 export function appendWidget(
