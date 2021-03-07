@@ -43,17 +43,14 @@ export default class AutocompletePlugin extends Plugin {
         },
       ],
       callback: () => {
-        const editor = this.getCurrentEditor()
+        const autocomplete = this.autocomplete
+        const editor = this.getValidEditorFor(autocomplete)
 
         if (editor) {
-          const autocomplete = this.autocomplete
-
-          this.updateEditorIfChanged(editor, autocomplete)
-
           // Do not open on vim normal mode
           if (editor.getOption('keyMap') === 'vim') return
 
-          this.autocomplete.toggleViewIn(editor)
+          autocomplete.toggleViewIn(editor)
         }
       },
     })
@@ -81,6 +78,16 @@ export default class AutocompletePlugin extends Plugin {
     this.updateEditorIfChanged(editor, autocomplete)
 
     this.autocomplete.updateViewIn(editor, event)
+  }
+
+  private getValidEditorFor(
+    autocomplete: Autocomplete
+  ): CodeMirror.Editor | null {
+    const currentEditor = this.getCurrentEditor()
+
+    if (currentEditor) this.updateEditorIfChanged(currentEditor, autocomplete)
+
+    return currentEditor
   }
 
   private updateEditorIfChanged(
