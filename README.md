@@ -3,7 +3,7 @@ This plugin provides a text autocomplete feature to enhance typing speed.
 
 ![Preview](https://media.giphy.com/media/UYWT3tGmpFaR2Zihfm/giphy.gif)
 
-> The plugin is still WIP, so if you encounter bugs please open an [issue](https://github.com/Yeboster/autocomplete-obsidian/issues/new/choose) with the steps to reproduce it.
+> The plugin is still WIP, so if you encounter bugs please open an [Github issue](https://github.com/Yeboster/autocomplete-obsidian/issues/new/choose) with the steps to reproduce it.
 
 ## Features
 There are the current and planned features:
@@ -12,12 +12,17 @@ There are the current and planned features:
 - [x] Autocomplete view style as Obsidian
 - [x] Supports multiple autocomplete providers (for now Latex)
 - [x] Seamless integration with vim mode
-- [ ] Proper layout management
-- [ ] Cursor placement on marks (Latex functions)
+- [x] Cursor placement on marks (Latex functions)
+- [ ] Text Providers:
+  - [x] LaTex
+  - [ ] Flow (suggests words already written and/or in current file)
+  - [ ] Custom file
 - [ ] Snippets support (h3 -> ###)
-- [ ] Context aware (Latex trigger only inside $$)
-- [ ] User defined providers
-- [ ] Page block scroll
+- [ ] Proper layout management (Improve autocomplete popup position)
+- [ ] Context aware (Latex trigger only inside `$$` block)
+- [ ] Improve autocomplete scroll
+
+> Do have you a nice feature to add or you want to change priorities (order of features)? Please open an [Github issue](https://github.com/Yeboster/autocomplete-obsidian/issues/new/choose).
 
 ## Contributing
 If you'd like to improve this plugin, you are welcome ❤️
