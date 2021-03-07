@@ -1,3 +1,6 @@
+- Move cursor into placeholder, if any
+- Updated features plan in readme
+
 # 0.5.10
 - Forgot to update version files 🤦
 

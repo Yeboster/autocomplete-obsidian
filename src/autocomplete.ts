@@ -1,12 +1,14 @@
 import {
   Direction,
   defaultDirection,
+  completionWordIn,
+  managePlaceholders,
+} from './autocomplete/core'
+import {
   generateView,
-  getRange,
   appendWidget,
   updateCachedView,
   scrollTo,
-  completionWordIn,
 } from './autocomplete/view'
 import LatexProvider from './providers/latex'
 import { Completion, Provider } from './providers/provider'
@@ -177,12 +179,15 @@ export class Autocomplete {
   private selectSuggestion(editor: CodeMirror.Editor) {
     const cursor = editor.getCursor()
     const selectedValue = this.suggestions[this.selected.index].value
-    const [replaceFrom, replaceTo] = getRange(this.cursorAtTrigger, cursor.ch)
+
+    const { normalizedValue, newCursorPosition } = managePlaceholders(
+      selectedValue,
+      this.cursorAtTrigger!.ch
+    )
 
     editor.operation(() => {
-      editor.replaceRange(selectedValue, replaceFrom, replaceTo)
+      editor.replaceRange(normalizedValue, this.cursorAtTrigger, cursor)
 
-      const newCursorPosition = replaceFrom.ch + selectedValue.length
       const updatedCursor = {
         line: cursor.line,
         ch: newCursorPosition,
