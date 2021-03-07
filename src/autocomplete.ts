@@ -10,7 +10,8 @@ import {
   updateCachedView,
   scrollTo,
 } from './autocomplete/view'
-import LatexProvider from './providers/latex'
+import { FlowProvider } from './providers/flow'
+import LaTexProvider from './providers/latex'
 import { Completion, Provider } from './providers/provider'
 import { AutocompleteSettings } from './settings/settings'
 
@@ -78,6 +79,18 @@ export class Autocomplete {
       }
     } catch (e) {
       console.error(`Cannot destroy view. Reason: ${e}`)
+    }
+  }
+
+  public updateProvidersFrom(event: KeyboardEvent, editor: CodeMirror.Editor) {
+    if (!event.ctrlKey && !event.altKey && event.key === ' ') {
+      const cursor = editor.getCursor()
+      const line = editor.getLine(cursor.line)
+      this.providers.forEach((provider) => {
+        // For now only FlowProvider
+        if (provider instanceof FlowProvider)
+          provider.addCompletionWord(line, cursor.ch - 1)
+      })
     }
   }
 
@@ -201,7 +214,8 @@ export class Autocomplete {
 
   private loadProviders() {
     const providers = []
-    if (this.settings.latexProvider) providers.push(new LatexProvider())
+    if (this.settings.latexProvider) providers.push(new LaTexProvider())
+    if (this.settings.flowProvider) providers.push(new FlowProvider())
 
     this.providers = providers
   }

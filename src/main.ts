@@ -73,6 +73,8 @@ export default class AutocompletePlugin extends Plugin {
 
   private keyUpListener = (editor: CodeMirror.Editor, event: KeyboardEvent) => {
     const autocomplete = this.autocomplete
+    autocomplete.updateProvidersFrom(event, editor)
+
     if (!autocomplete.isShown()) return
 
     this.updateEditorIfChanged(editor, autocomplete)
