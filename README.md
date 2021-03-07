@@ -15,8 +15,10 @@ There are the current and planned features:
 - [x] Autocomplete view style as Obsidian
 - [x] Supports multiple autocomplete providers (for now Latex)
 - [x] Seamless integration with vim mode
-- [x] Cursor placement on marks (Latex functions)
-- [ ] Text Providers:
+- Cursor placement on marks:
+  - [x] Single cursor placement
+  - [ ] Multiple cursor placement on marks (Latex functions)
+- Text Providers:
   - [x] LaTex
   - [ ] Flow (suggests words already written and/or in current file)
   - [ ] Custom file
