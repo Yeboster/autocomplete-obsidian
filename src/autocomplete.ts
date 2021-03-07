@@ -66,7 +66,7 @@ export class Autocomplete {
 
   public removeViewFrom(editor: CodeMirror.Editor) {
     this.selected = defaultDirection()
-    this.removeKeyBindings(editor)
+    editor.removeKeyMap(this.keyMaps)
 
     if (!this.view) return
     this.addClickListener(this.view, editor, false)
@@ -102,7 +102,7 @@ export class Autocomplete {
       []
     )
 
-    this.addKeyBindings(editor)
+    editor.addKeyMap(this.keyMaps)
 
     this.view = generateView(this.suggestions, this.selected.index)
     this.addClickListener(this.view, editor)
@@ -128,14 +128,6 @@ export class Autocomplete {
         }
         break
     }
-  }
-
-  private addKeyBindings(editor: CodeMirror.Editor) {
-    editor.addKeyMap(this.keyMaps)
-  }
-
-  private removeKeyBindings(editor: CodeMirror.Editor) {
-    editor.removeKeyMap(this.keyMaps)
   }
 
   private keyMaps = {
