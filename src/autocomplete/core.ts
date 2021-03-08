@@ -51,7 +51,7 @@ export function updateSelectedSuggestionFrom(
   switch (`${event.ctrlKey} ${event.key}`) {
     case 'true p':
     case 'false ArrowUp':
-      const decreased = this.selected.index - 1
+      const decreased = selected.index - 1
       updatedSelected = {
         index: decreased < 0 ? suggestionsLength - 1 : decreased,
         direction: 'backward',
@@ -59,7 +59,7 @@ export function updateSelectedSuggestionFrom(
       break
     case 'true n':
     case 'false ArrowDown':
-      const increased = this.selected.index + 1
+      const increased = selected.index + 1
       updatedSelected = {
         index: increased >= suggestionsLength ? 0 : increased,
         direction: 'forward',
