@@ -87,13 +87,17 @@ export class Autocomplete {
   }
 
   public updateProvidersFrom(event: KeyboardEvent, editor: CodeMirror.Editor) {
-    if (!event.ctrlKey && !event.altKey && event.key === ' ') {
-      const cursor = editor.getCursor()
+    if (Provider.wordSeparatorRegex.test(event.key)) {
+      const cursor = { ...editor.getCursor() } // Make a copy to change values
+      if (/Enter/.test(event.key)) {
+        cursor.line -= 1
+        cursor.ch = editor.getLine(cursor.line).length
+      }
       const line = editor.getLine(cursor.line)
       this.providers.forEach((provider) => {
         // For now only FlowProvider
         if (provider instanceof FlowProvider)
-          provider.addCompletionWord(line, cursor.ch - 1)
+          provider.addCompletionWord(line, cursor.ch)
       })
     }
   }
