@@ -18,18 +18,6 @@ export function lastWordPosition(text: string, index: number): number {
   return wordStartIndex
 }
 
-export function getLastWordContext(
-  editor: CodeMirror.Editor
-): { wordStartIndex: number; word: string | null } {
-  const cursor = editor.getCursor()
-  const currentLine: string = editor.getLine(cursor.line)
-
-  const wordStartIndex = lastWordPosition(currentLine, cursor.ch)
-  const word = getLastWordFrom(currentLine, cursor.ch)
-
-  return { wordStartIndex, word }
-}
-
 export function getLastWordIn(editor: CodeMirror.Editor): string | null {
   const cursor = editor.getCursor()
   const currentLine: string = editor.getLine(cursor.line)

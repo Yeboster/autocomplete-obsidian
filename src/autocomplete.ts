@@ -4,8 +4,9 @@ import {
   managePlaceholders,
   updateSelectedSuggestionFrom,
   getLastWordIn,
-  getLastWordContext,
   copyObject,
+  getLastWordFrom,
+  lastWordPosition,
 } from './autocomplete/core'
 import {
   generateView,
@@ -48,11 +49,14 @@ export class Autocomplete {
       this.cursorAtTrigger = null
       this.removeViewFrom(editor)
     } else if (isEnabled) {
-      const { word, wordStartIndex } = getLastWordContext(editor)
-
       const cursor = copyObject(editor.getCursor())
+      const currentLine: string = editor.getLine(cursor.line)
+
+      const wordStartIndex = lastWordPosition(currentLine, cursor.ch)
       cursor.ch = wordStartIndex
       this.cursorAtTrigger = cursor
+
+      const word = getLastWordFrom(currentLine, cursor.ch)
 
       this.showViewIn(editor, word)
     }
