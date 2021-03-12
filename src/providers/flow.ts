@@ -1,4 +1,4 @@
-import {getLastWordFrom} from '../autocomplete/core'
+import { lastWordFrom } from '../autocomplete/core'
 import { Provider } from './provider'
 
 export class FlowProvider extends Provider {
@@ -8,7 +8,7 @@ export class FlowProvider extends Provider {
   addCompletionWord(line: string, cursorIndex: number): void {
     const { normalized, updatedCursor } = this.normalizedLine(line, cursorIndex)
 
-    const word = getLastWordFrom(normalized, updatedCursor)
+    const word = lastWordFrom(normalized, updatedCursor)
 
     if (!word || this.alreadyAdded(word)) return
 

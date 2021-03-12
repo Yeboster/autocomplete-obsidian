@@ -3,10 +3,10 @@ import {
   defaultDirection,
   managePlaceholders,
   updateSelectedSuggestionFrom,
-  getLastWordIn,
+  lastWordIn,
   copyObject,
-  getLastWordFrom,
-  lastWordPosition,
+  lastWordFrom,
+  lastWordStartPos,
 } from './autocomplete/core'
 import {
   generateView,
@@ -52,11 +52,11 @@ export class Autocomplete {
       const cursor = copyObject(editor.getCursor())
       const currentLine: string = editor.getLine(cursor.line)
 
-      const wordStartIndex = lastWordPosition(currentLine, cursor.ch)
+      const wordStartIndex = lastWordStartPos(currentLine, cursor.ch)
       cursor.ch = wordStartIndex
       this.cursorAtTrigger = cursor
 
-      const word = getLastWordFrom(currentLine, cursor.ch)
+      const word = lastWordFrom(currentLine, cursor.ch)
 
       this.showViewIn(editor, word)
     }
@@ -69,7 +69,7 @@ export class Autocomplete {
       this.suggestions.length
     )
 
-    const completionWord = getLastWordIn(editor)
+    const completionWord = lastWordIn(editor)
 
     const recreate = completionWord !== this.lastCompletionWord
     if (recreate) {

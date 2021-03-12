@@ -9,7 +9,7 @@ export function defaultDirection(): Direction {
   return { index: 0, direction: 'still' }
 }
 
-export function lastWordPosition(text: string, index: number): number {
+export function lastWordStartPos(text: string, index: number): number {
   let wordStartIndex = index
   const wordRegex = /[\w$]+/
   while (wordStartIndex && wordRegex.test(text.charAt(wordStartIndex - 1)))
@@ -18,20 +18,20 @@ export function lastWordPosition(text: string, index: number): number {
   return wordStartIndex
 }
 
-export function getLastWordIn(editor: CodeMirror.Editor): string | null {
+export function lastWordIn(editor: CodeMirror.Editor): string | null {
   const cursor = editor.getCursor()
   const currentLine: string = editor.getLine(cursor.line)
 
-  const word = getLastWordFrom(currentLine, cursor.ch)
+  const word = lastWordFrom(currentLine, cursor.ch)
 
   return word
 }
 
-export function getLastWordFrom(
+export function lastWordFrom(
   line: string,
   cursorIndex: number
 ): string | null {
-  let wordStartIndex = lastWordPosition(line, cursorIndex)
+  let wordStartIndex = lastWordStartPos(line, cursorIndex)
   let word: string | null = null
   if (wordStartIndex !== cursorIndex)
     word = line.slice(wordStartIndex, cursorIndex)
