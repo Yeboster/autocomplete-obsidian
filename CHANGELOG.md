@@ -1,3 +1,8 @@
+# 0.6.1
+- Improve word detection
+- Improve autocomplete trigger context
+- Show empty autocomplete view
+
 # 0.6.0
 - Move cursor into placeholder, if any
 - Updated features plan in readme
