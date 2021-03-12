@@ -5,3 +5,9 @@
 .no-border-top {
   border-top: 0;
 }
+
+.no-suggestions {
+  text-align: center;
+  margin: 10pt;
+  color: var(--text-faint);
+}
