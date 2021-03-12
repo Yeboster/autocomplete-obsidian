@@ -1,9 +1,12 @@
 import {
   Direction,
   defaultDirection,
-  completionWordIn,
   managePlaceholders,
   updateSelectedSuggestionFrom,
+  lastWordIn,
+  copyObject,
+  lastWordFrom,
+  lastWordStartPos,
 } from './autocomplete/core'
 import {
   generateView,
@@ -46,8 +49,16 @@ export class Autocomplete {
       this.cursorAtTrigger = null
       this.removeViewFrom(editor)
     } else if (isEnabled) {
-      this.cursorAtTrigger = editor.getCursor()
-      this.showViewIn(editor)
+      const cursor = copyObject(editor.getCursor())
+      const currentLine: string = editor.getLine(cursor.line)
+
+      const wordStartIndex = lastWordStartPos(currentLine, cursor.ch)
+      cursor.ch = wordStartIndex
+      this.cursorAtTrigger = cursor
+
+      const word = lastWordFrom(currentLine, cursor.ch)
+
+      this.showViewIn(editor, word)
     }
   }
 
@@ -58,7 +69,7 @@ export class Autocomplete {
       this.suggestions.length
     )
 
-    const completionWord = completionWordIn(editor, this.cursorAtTrigger)
+    const completionWord = lastWordIn(editor)
 
     const recreate = completionWord !== this.lastCompletionWord
     if (recreate) {
@@ -87,8 +98,8 @@ export class Autocomplete {
   }
 
   public updateProvidersFrom(event: KeyboardEvent, editor: CodeMirror.Editor) {
-    if (Provider.wordSeparatorRegex.test(event.key)) {
-      const cursor = { ...editor.getCursor() } // Make a copy to change values
+    if (!event.ctrlKey && Provider.wordSeparatorRegex.test(event.key)) {
+      const cursor = copyObject(editor.getCursor())
       if (/Enter/.test(event.key)) {
         cursor.line -= 1
         cursor.ch = editor.getLine(cursor.line).length
@@ -106,7 +117,7 @@ export class Autocomplete {
     if (this.view) this.removeViewFrom(editor)
 
     this.suggestions = this.providers.reduce(
-      (acc, provider) => acc.concat(provider.matchWith(completionWord)),
+      (acc, provider) => acc.concat(provider.matchWith(completionWord || '')),
       []
     )
 
