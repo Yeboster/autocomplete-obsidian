@@ -10,17 +10,16 @@ This plugin provides a text autocomplete feature to enhance typing speed.
 
 There are the current and planned features:
 
-- [x] Trigger autocomplete with `ctrl+space` or `Toggle Autocomplete` command
-- [x] Change suggestion with `Ctrl-n/p` or `up/down arrows` and select with `enter`
-- [x] Autocomplete view style as Obsidian
-- [x] Supports multiple autocomplete providers (for now Latex)
-- [x] Seamless integration with vim mode
+- Trigger autocomplete with `ctrl+space` or `Toggle Autocomplete` command
+- Change suggestion with `Ctrl-n/p` or `up/down arrows` and select with `enter`
+- Autocomplete view style as Obsidian
+- Seamless integration with vim mode
 - Cursor placement on marks:
-  - [x] Single cursor placement
+  - Single cursor placement
   - [ ] Multiple cursor placement on marks (Latex functions)
-- Text Providers:
-  - [x] LaTex
-  - [x] Flow (suggests words already written in the current session)
+- Suggest completions with text providers:
+  - LaTex
+  - Flow (suggests words already written in the current session)
   - [ ] Current file
   - [ ] Custom file
 - [ ] Snippets support (h3 -> ###)
