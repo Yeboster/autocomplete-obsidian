@@ -41,3 +41,31 @@ export function managePlaceholders(
 
   return { normalizedValue, newCursorPosition }
 }
+
+export function updateSelectedSuggestionFrom(
+  event: KeyboardEvent,
+  selected: Direction,
+  suggestionsLength: number
+) {
+  let updatedSelected: Direction = selected
+  switch (`${event.ctrlKey} ${event.key}`) {
+    case 'true p':
+    case 'false ArrowUp':
+      const decreased = selected.index - 1
+      updatedSelected = {
+        index: decreased < 0 ? suggestionsLength - 1 : decreased,
+        direction: 'backward',
+      }
+      break
+    case 'true n':
+    case 'false ArrowDown':
+      const increased = selected.index + 1
+      updatedSelected = {
+        index: increased >= suggestionsLength ? 0 : increased,
+        direction: 'forward',
+      }
+      break
+  }
+
+  return updatedSelected
+}

@@ -3,6 +3,7 @@ import {
   defaultDirection,
   completionWordIn,
   managePlaceholders,
+  updateSelectedSuggestionFrom,
 } from './autocomplete/core'
 import {
   generateView,
@@ -51,7 +52,11 @@ export class Autocomplete {
   }
 
   public updateViewIn(editor: CodeMirror.Editor, event: KeyboardEvent) {
-    this.changeSelectedSuggestionFrom(event)
+    this.selected = updateSelectedSuggestionFrom(
+      event,
+      this.selected,
+      this.suggestions.length
+    )
 
     const completionWord = completionWordIn(editor, this.cursorAtTrigger)
 
@@ -70,7 +75,6 @@ export class Autocomplete {
 
     if (!this.view) return
     this.addClickListener(this.view, editor, false)
-
     try {
       const parentNode = this.view.parentNode
       if (parentNode) {
@@ -83,13 +87,17 @@ export class Autocomplete {
   }
 
   public updateProvidersFrom(event: KeyboardEvent, editor: CodeMirror.Editor) {
-    if (!event.ctrlKey && !event.altKey && event.key === ' ') {
-      const cursor = editor.getCursor()
+    if (Provider.wordSeparatorRegex.test(event.key)) {
+      const cursor = { ...editor.getCursor() } // Make a copy to change values
+      if (/Enter/.test(event.key)) {
+        cursor.line -= 1
+        cursor.ch = editor.getLine(cursor.line).length
+      }
       const line = editor.getLine(cursor.line)
       this.providers.forEach((provider) => {
         // For now only FlowProvider
         if (provider instanceof FlowProvider)
-          provider.addCompletionWord(line, cursor.ch - 1)
+          provider.addCompletionWord(line, cursor.ch)
       })
     }
   }
@@ -107,27 +115,6 @@ export class Autocomplete {
     this.view = generateView(this.suggestions, this.selected.index)
     this.addClickListener(this.view, editor)
     appendWidget(editor, this.view)
-  }
-
-  private changeSelectedSuggestionFrom(event: KeyboardEvent) {
-    switch (`${event.ctrlKey} ${event.key}`) {
-      case 'true p':
-      case 'false ArrowUp':
-        const decreased = this.selected.index - 1
-        this.selected = {
-          index: decreased < 0 ? this.suggestions.length - 1 : decreased,
-          direction: 'backward',
-        }
-        break
-      case 'true n':
-      case 'false ArrowDown':
-        const increased = this.selected.index + 1
-        this.selected = {
-          index: increased >= this.suggestions.length ? 0 : increased,
-          direction: 'forward',
-        }
-        break
-    }
   }
 
   private keyMaps = {
