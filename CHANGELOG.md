@@ -1,7 +1,11 @@
+# 0.6.2
+- Fix removeView
+
 # 0.6.1
 - Improve word detection
 - Improve autocomplete trigger context
 - Show empty autocomplete view
+- Update autocomplete prompt
 
 # 0.6.0
 - Move cursor into placeholder, if any
