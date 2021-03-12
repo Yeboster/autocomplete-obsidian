@@ -4,6 +4,8 @@ import {
   managePlaceholders,
   updateSelectedSuggestionFrom,
   getLastWordIn,
+  getLastWordContext,
+  copyObject,
 } from './autocomplete/core'
 import {
   generateView,
@@ -46,11 +48,13 @@ export class Autocomplete {
       this.cursorAtTrigger = null
       this.removeViewFrom(editor)
     } else if (isEnabled) {
-      this.cursorAtTrigger = editor.getCursor()
+      const { word, wordStartIndex } = getLastWordContext(editor)
 
-      const lastWord = getLastWordIn(editor)
+      const cursor = copyObject(editor.getCursor())
+      cursor.ch = wordStartIndex
+      this.cursorAtTrigger = cursor
 
-      this.showViewIn(editor, lastWord)
+      this.showViewIn(editor, word)
     }
   }
 
@@ -91,7 +95,7 @@ export class Autocomplete {
 
   public updateProvidersFrom(event: KeyboardEvent, editor: CodeMirror.Editor) {
     if (!event.ctrlKey && Provider.wordSeparatorRegex.test(event.key)) {
-      const cursor = { ...editor.getCursor() } // Make a copy to change values
+      const cursor = copyObject(editor.getCursor())
       if (/Enter/.test(event.key)) {
         cursor.line -= 1
         cursor.ch = editor.getLine(cursor.line).length

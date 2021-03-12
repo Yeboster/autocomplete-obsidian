@@ -9,9 +9,31 @@ export function defaultDirection(): Direction {
   return { index: 0, direction: 'still' }
 }
 
-export function getLastWordIn(editor: CodeMirror.Editor) {
+export function lastWordPosition(text: string, index: number): number {
+  let wordStartIndex = index
+  const wordRegex = /[\w$]+/
+  while (wordStartIndex && wordRegex.test(text.charAt(wordStartIndex - 1)))
+    wordStartIndex -= 1
+
+  return wordStartIndex
+}
+
+export function getLastWordContext(
+  editor: CodeMirror.Editor
+): { wordStartIndex: number; word: string | null } {
   const cursor = editor.getCursor()
   const currentLine: string = editor.getLine(cursor.line)
+
+  const wordStartIndex = lastWordPosition(currentLine, cursor.ch)
+  const word = getLastWordFrom(currentLine, cursor.ch)
+
+  return { wordStartIndex, word }
+}
+
+export function getLastWordIn(editor: CodeMirror.Editor): string | null {
+  const cursor = editor.getCursor()
+  const currentLine: string = editor.getLine(cursor.line)
+
   const word = getLastWordFrom(currentLine, cursor.ch)
 
   return word
@@ -21,11 +43,7 @@ export function getLastWordFrom(
   line: string,
   cursorIndex: number
 ): string | null {
-  let wordStartIndex = cursorIndex
-  const wordRegex = /[\w$]+/
-  while (wordStartIndex && wordRegex.test(line.charAt(wordStartIndex - 1)))
-    wordStartIndex -= 1
-
+  let wordStartIndex = lastWordPosition(line, cursorIndex)
   let word: string | null = null
   if (wordStartIndex !== cursorIndex)
     word = line.slice(wordStartIndex, cursorIndex)
@@ -81,4 +99,8 @@ export function updateSelectedSuggestionFrom(
   }
 
   return updatedSelected
+}
+
+export function copyObject(obj: any): any {
+  return { ...obj }
 }
