@@ -15,17 +15,22 @@ export function generateView(suggestions: Completion[], selectedIndex: number) {
         </div>
       `
   }, [])
+  const suggestionsJoined = suggestionsHtml.join('\n')
   const viewString = `
       <div id="suggestion-list" class="suggestion">
-        ${suggestionsHtml.join('\n')}
+        ${
+          suggestionsJoined.length > 0
+            ? suggestionsJoined
+            : '<div class="no-suggestions">No match found</div>'
+        }
       </div>
       <div class="prompt-instructions">
         <div class="prompt-instruction">
-          <span class="prompt-instruction-command">Ctrl+N</span>
+          <span class="prompt-instruction-command">Ctrl+N /↑ </span>
           <span>Next Suggestion</span>
         </div>
         <div class="prompt-instruction">
-          <span class="prompt-instruction-command">Ctrl+P</span>
+          <span class="prompt-instruction-command">Ctrl+P /↓ </span>
           <span>Previous Suggestion</span>
         </div>
         <div class="prompt-instruction">
@@ -35,10 +40,8 @@ export function generateView(suggestions: Completion[], selectedIndex: number) {
       </div>
     `
   const containerNode = document.createElement('div')
-  if (suggestionsHtml.length > 0) {
-    containerNode.classList.add('suggestion-container')
-    containerNode.insertAdjacentHTML('beforeend', viewString)
-  }
+  containerNode.classList.add('suggestion-container')
+  containerNode.insertAdjacentHTML('beforeend', viewString)
 
   return containerNode
 }

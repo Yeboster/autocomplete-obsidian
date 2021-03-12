@@ -2,7 +2,8 @@ export abstract class Provider {
   abstract readonly category: string
   abstract completions: Array<string>
 
-  static placeholder: string = '#{}'
+  static readonly wordSeparatorRegex = /(\.|,|;|:|'|"|!|\?|-|\)|\]|\}|\/| |Enter)/
+  static readonly placeholder: string = '#{}'
 
   matchWith(input: string): Completion[] {
     // TODO: Improve filtering with weights

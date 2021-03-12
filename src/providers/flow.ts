@@ -1,3 +1,4 @@
+import { lastWordFrom } from '../autocomplete/core'
 import { Provider } from './provider'
 
 export class FlowProvider extends Provider {
@@ -5,25 +6,35 @@ export class FlowProvider extends Provider {
   completions = []
 
   addCompletionWord(line: string, cursorIndex: number): void {
-    const word = this.getLastWordFrom(line, cursorIndex)
+    const { normalized, updatedCursor } = this.normalizedLine(line, cursorIndex)
+
+    const word = lastWordFrom(normalized, updatedCursor)
 
     if (!word || this.alreadyAdded(word)) return
 
     this.completions.push(word)
   }
 
-  private getLastWordFrom(line: string, cursorIndex: number): string | null {
-    let wordStartIndex = cursorIndex
-    const wordRegex = /[\w$]+/
-    while (wordStartIndex && wordRegex.test(line.charAt(wordStartIndex - 1))) {
-      wordStartIndex -= 1
+  private normalizedLine(
+    line: string,
+    cursorIndex: number
+  ): { normalized: string; updatedCursor: number } {
+    const partialLine = line.slice(0, cursorIndex)
+    let normalized = partialLine.trimEnd()
+
+    // Subtract how many spaces removed
+    let updatedCursor = cursorIndex - (partialLine.length - normalized.length)
+
+    if (normalized.length === 0) return { normalized: '', updatedCursor: 0 }
+
+    const lastChar = normalized.charAt(updatedCursor - 1)
+
+    if (Provider.wordSeparatorRegex.test(lastChar)) {
+      updatedCursor -= 1
+      normalized = normalized.slice(0, updatedCursor)
     }
 
-    let word: string | null = null
-    if (wordStartIndex !== cursorIndex)
-      word = line.slice(wordStartIndex, cursorIndex).trimRight()
-
-    return word
+    return { normalized, updatedCursor }
   }
 
   private alreadyAdded(word: string): boolean {
