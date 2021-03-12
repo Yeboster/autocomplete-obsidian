@@ -46,6 +46,7 @@ export class Autocomplete {
   public toggleViewIn(editor: CodeMirror.Editor) {
     const isEnabled = this.settings.enabled
     if (this.isShown() || !isEnabled) {
+      this.cursorAtTrigger = null
       this.removeViewFrom(editor)
     } else if (isEnabled) {
       const cursor = copyObject(editor.getCursor())
@@ -82,7 +83,6 @@ export class Autocomplete {
   public removeViewFrom(editor: CodeMirror.Editor) {
     this.selected = defaultDirection()
     editor.removeKeyMap(this.keyMaps)
-    this.cursorAtTrigger = null
 
     if (!this.view) return
     this.addClickListener(this.view, editor, false)
