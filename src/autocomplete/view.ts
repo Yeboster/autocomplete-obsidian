@@ -21,16 +21,16 @@ export function generateView(suggestions: Completion[], selectedIndex: number) {
         ${
           suggestionsJoined.length > 0
             ? suggestionsJoined
-            : '<div class="no-suggestions">No Suggestions</div>'
+            : '<div class="no-suggestions">No match found</div>'
         }
       </div>
       <div class="prompt-instructions">
         <div class="prompt-instruction">
-          <span class="prompt-instruction-command">Ctrl+N</span>
+          <span class="prompt-instruction-command">Ctrl+N /↑ </span>
           <span>Next Suggestion</span>
         </div>
         <div class="prompt-instruction">
-          <span class="prompt-instruction-command">Ctrl+P</span>
+          <span class="prompt-instruction-command">Ctrl+P /↓ </span>
           <span>Previous Suggestion</span>
         </div>
         <div class="prompt-instruction">
