@@ -27,10 +27,7 @@ export function lastWordIn(editor: CodeMirror.Editor): string | null {
   return word
 }
 
-export function lastWordFrom(
-  line: string,
-  cursorIndex: number
-): string | null {
+export function lastWordFrom(line: string, cursorIndex: number): string | null {
   let wordStartIndex = lastWordStartPos(line, cursorIndex)
   let word: string | null = null
   if (wordStartIndex !== cursorIndex)
