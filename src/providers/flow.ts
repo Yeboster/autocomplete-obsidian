@@ -1,3 +1,4 @@
+import {getLastWordFrom} from '../autocomplete/core'
 import { Provider } from './provider'
 
 export class FlowProvider extends Provider {
@@ -7,7 +8,7 @@ export class FlowProvider extends Provider {
   addCompletionWord(line: string, cursorIndex: number): void {
     const { normalized, updatedCursor } = this.normalizedLine(line, cursorIndex)
 
-    const word = this.getLastWordFrom(normalized, updatedCursor)
+    const word = getLastWordFrom(normalized, updatedCursor)
 
     if (!word || this.alreadyAdded(word)) return
 
@@ -34,19 +35,6 @@ export class FlowProvider extends Provider {
     }
 
     return { normalized, updatedCursor }
-  }
-
-  private getLastWordFrom(line: string, cursorIndex: number): string | null {
-    let wordStartIndex = cursorIndex
-    const wordRegex = /[\w$]+/
-    while (wordStartIndex && wordRegex.test(line.charAt(wordStartIndex - 1)))
-      wordStartIndex -= 1
-
-    let word: string | null = null
-    if (wordStartIndex !== cursorIndex)
-      word = line.slice(wordStartIndex, cursorIndex)
-
-    return word
   }
 
   private alreadyAdded(word: string): boolean {

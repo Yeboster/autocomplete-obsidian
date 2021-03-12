@@ -9,13 +9,26 @@ export function defaultDirection(): Direction {
   return { index: 0, direction: 'still' }
 }
 
-export function completionWordIn(
-  editor: CodeMirror.Editor,
-  cursorAtTrigger?: CodeMirror.Position
-) {
+export function getLastWordIn(editor: CodeMirror.Editor) {
   const cursor = editor.getCursor()
   const currentLine: string = editor.getLine(cursor.line)
-  const word = currentLine.substring(cursorAtTrigger?.ch || 0, cursor.ch)
+  const word = getLastWordFrom(currentLine, cursor.ch)
+
+  return word
+}
+
+export function getLastWordFrom(
+  line: string,
+  cursorIndex: number
+): string | null {
+  let wordStartIndex = cursorIndex
+  const wordRegex = /[\w$]+/
+  while (wordStartIndex && wordRegex.test(line.charAt(wordStartIndex - 1)))
+    wordStartIndex -= 1
+
+  let word: string | null = null
+  if (wordStartIndex !== cursorIndex)
+    word = line.slice(wordStartIndex, cursorIndex)
 
   return word
 }
