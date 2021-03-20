@@ -58,6 +58,7 @@ export default class AutocompletePlugin extends Plugin {
 
   enable() {
     this.autocomplete = new Autocomplete(this.settings)
+    this.app.workspace.on('file-open', this.autocomplete.onFileOpened)
     this.registerCodeMirror((editor) => {
       editor.on('keyup', this.keyUpListener)
     })
@@ -65,6 +66,7 @@ export default class AutocompletePlugin extends Plugin {
 
   disable() {
     const workspace = this.app.workspace
+    workspace.off('file-open', this.autocomplete.onFileOpened)
     workspace.iterateCodeMirrors((cm) => {
       cm.off('keyup', this.keyUpListener)
       this.autocomplete.removeViewFrom(cm)

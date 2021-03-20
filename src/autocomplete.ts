@@ -19,6 +19,10 @@ import LaTexProvider from './providers/latex'
 import { Completion, Provider } from './providers/provider'
 import { AutocompleteSettings } from './settings/settings'
 
+import { TFile } from 'obsidian'
+
+import fs from 'fs'
+
 export class Autocomplete {
   private providers: Provider[]
   private suggestions: Completion[]
@@ -102,7 +106,12 @@ export class Autocomplete {
       const cursor = copyObject(editor.getCursor())
       if (/Enter/.test(event.key)) {
         cursor.line -= 1
-        cursor.ch = editor.getLine(cursor.line).length
+        const currentLine = editor.getLine(cursor.line)
+
+        // Changed editor pane
+        if (!currentLine) return
+
+        cursor.ch = currentLine.length
       }
       const line = editor.getLine(cursor.line)
       this.providers.forEach((provider) => {
@@ -111,6 +120,18 @@ export class Autocomplete {
           provider.addCompletionWord(line, cursor.ch)
       })
     }
+  }
+
+  /*
+   * Update providers on open file event
+   */
+  public onFileOpened(file: TFile) {
+    fs.readFile(file.path, { encoding: 'utf8' }, (content) => {
+      this.providers.forEach((provider) => {
+        // if (provider instanceof FlowProvider)
+        // TODO: Update flow provider suggestions
+      })
+    })
   }
 
   private showViewIn(editor: CodeMirror.Editor, completionWord: string = '') {
