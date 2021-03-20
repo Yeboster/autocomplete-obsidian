@@ -21,8 +21,6 @@ import { AutocompleteSettings } from './settings/settings'
 
 import { TFile } from 'obsidian'
 
-import fs from 'fs'
-
 export class Autocomplete {
   private providers: Provider[]
   private suggestions: Completion[]
@@ -123,13 +121,16 @@ export class Autocomplete {
   }
 
   /*
-   * Update providers on open file event
+   * Update providers on open file event.
+   * Requires autocomplete as context.
    */
   public onFileOpened(file: TFile) {
-    fs.readFile(file.path, { encoding: 'utf8' }, (content) => {
-      this.providers.forEach((provider) => {
-        // if (provider instanceof FlowProvider)
-        // TODO: Update flow provider suggestions
+    const providers = this.providers
+    file.vault.read(file).then((content) => {
+      providers.forEach((provider) => {
+        if (provider instanceof FlowProvider)
+          // TODO: Update flow provider suggestions
+          console.log('scanning file...')
       })
     })
   }
