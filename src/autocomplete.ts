@@ -168,7 +168,7 @@ export class Autocomplete {
         if (hintId && hintId.startsWith(hintIdPrefix)) {
           hintId = hintId.replace(hintIdPrefix, '')
           const id = parseInt(hintId)
-          if (id && id > 0 && id < this.suggestions.length) {
+          if (id >= 0 && id < this.suggestions.length) {
             this.selected.index = id
             this.selectSuggestion(editor)
           }
