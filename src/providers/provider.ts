@@ -11,16 +11,14 @@ export abstract class Provider {
 
     // TODO: Show lowercase first and the upper case, if search is case insensitive
 
+    // case-sensitive logic if input has an upper case.
+    // Otherwise, uses case-insensitive logic
     const suggestions = this.completions
-      .filter((suggestion) => {
-        // case-sensitive logic if input has an upper case.
-        // Otherwise, uses case-insensitive logic
-        let included: boolean
-        if (inputHasUpperCase) included = suggestion.includes(input)
-        else included = suggestion.toLowerCase().includes(inputLowered)
-
-        return included
-      })
+      .filter((suggestion) =>
+        inputHasUpperCase
+          ? suggestion.includes(input)
+          : suggestion.toLowerCase().includes(inputLowered)
+      )
       .sort((a, b) => a.length - b.length)
       .sort(
         (a, b) =>
