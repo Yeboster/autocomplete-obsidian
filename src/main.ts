@@ -60,7 +60,11 @@ export default class AutocompletePlugin extends Plugin {
     this.autocomplete = new Autocomplete(this.settings)
     if (this.settings.flowProviderScanCurrent)
       // Passing autocomplete as context
-      this.app.workspace.on('file-open', this.autocomplete.onFileOpened, this.autocomplete)
+      this.app.workspace.on(
+        'file-open',
+        this.autocomplete.onFileOpened,
+        this.autocomplete
+      )
     this.registerCodeMirror((editor) => {
       editor.on('keyup', this.keyUpListener)
     })
@@ -80,7 +84,7 @@ export default class AutocompletePlugin extends Plugin {
     const autocomplete = this.autocomplete
     autocomplete.updateProvidersFrom(event, editor)
 
-    if (!autocomplete.isShown()) return
+    if (!autocomplete.isShown) return
 
     this.updateEditorIfChanged(editor, autocomplete)
 

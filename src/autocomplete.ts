@@ -41,13 +41,13 @@ export class Autocomplete {
     this.view = null
   }
 
-  public isShown(): boolean {
+  public get isShown(): boolean {
     return this.view !== null
   }
 
   public toggleViewIn(editor: CodeMirror.Editor) {
     const isEnabled = this.settings.enabled
-    if (this.isShown() || !isEnabled) {
+    if (this.isShown || !isEnabled) {
       this.cursorAtTrigger = null
       this.removeViewFrom(editor)
     } else if (isEnabled) {
