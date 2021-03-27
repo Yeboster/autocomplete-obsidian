@@ -1,5 +1,6 @@
-import { MarkdownView, Plugin } from 'obsidian'
+import { MarkdownView, Notice, Plugin, TFile } from 'obsidian'
 import { Autocomplete } from './autocomplete'
+import { TokenizeStrategy } from './providers/flow/tokenizer'
 import { AutocompleteSettings } from './settings/settings'
 import { AutocompleteSettingsTab } from './settings/settings-tab'
 
@@ -54,17 +55,15 @@ export default class AutocompletePlugin extends Plugin {
         }
       },
     })
+
+    this.addScanCommands()
   }
 
   enable() {
     this.autocomplete = new Autocomplete(this.settings)
     if (this.settings.flowProviderScanCurrent)
       // Passing autocomplete as context
-      this.app.workspace.on(
-        'file-open',
-        this.autocomplete.onFileOpened,
-        this.autocomplete
-      )
+      this.app.workspace.on('file-open', this.onFileOpened, this)
     this.registerCodeMirror((editor) => {
       editor.on('keyup', this.keyUpListener)
     })
@@ -73,10 +72,40 @@ export default class AutocompletePlugin extends Plugin {
   disable() {
     const workspace = this.app.workspace
     // Always remove to avoid any kind problem
-    workspace.off('file-open', this.autocomplete.onFileOpened)
+    workspace.off('file-open', this.onFileOpened)
     workspace.iterateCodeMirrors((cm) => {
       cm.off('keyup', this.keyUpListener)
       this.autocomplete.removeViewFrom(cm)
+    })
+  }
+
+  private addScanCommands() {
+    const scanTypes: TokenizeStrategy[] = ['default', 'japanese', 'arabic']
+    scanTypes.forEach((type) => {
+      const capitalized = type.replace(/^\w/, (c) => c.toLocaleUpperCase())
+      const name = `Autocomplete: Scan current file ${
+        type !== 'default' ? `(${capitalized})` : ''
+      }`
+
+      this.addCommand({
+        id: `autocomplete-scan-current-file-${type}`,
+        name,
+        callback: () => {
+          if (!this.settings.flowProviderScanCurrent) {
+            new Notice(
+              'Please activate setting flow Provider: Scan current file'
+            )
+          }
+
+          const autocomplete = this.autocomplete
+          const editor = this.getValidEditorFor(autocomplete)
+
+          if (editor) {
+            const file = this.app.workspace.getActiveFile()
+            autocomplete.scanFile(file, type)
+          }
+        },
+      })
     })
   }
 
@@ -89,6 +118,10 @@ export default class AutocompletePlugin extends Plugin {
     this.updateEditorIfChanged(editor, autocomplete)
 
     this.autocomplete.updateViewIn(editor, event)
+  }
+
+  private onFileOpened(file: TFile) {
+    this.autocomplete.scanFile(file)
   }
 
   private getValidEditorFor(

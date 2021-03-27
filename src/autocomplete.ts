@@ -19,7 +19,8 @@ import LaTexProvider from './providers/latex'
 import { Completion, Provider } from './providers/provider'
 import { AutocompleteSettings } from './settings/settings'
 
-import { TFile } from 'obsidian'
+import {TFile} from 'obsidian'
+import {TokenizeStrategy} from './providers/flow/tokenizer'
 
 export class Autocomplete {
   private providers: Provider[]
@@ -120,17 +121,12 @@ export class Autocomplete {
     }
   }
 
-  /*
-   * Update providers on open file event.
-   * Requires autocomplete as context.
-   */
-  public onFileOpened(file: TFile) {
+  public scanFile(file: TFile, strategy: TokenizeStrategy = 'default') {
     const providers = this.providers
-    file.vault.read(file).then((content) => {
+    file.vault.read(file).then((content: string) => {
       // TODO: Make it async
       providers.forEach((provider) => {
-        if (provider instanceof FlowProvider)
-          provider.addWordsFrom(content)
+        if (provider instanceof FlowProvider) provider.addWordsFrom(content)
       })
     })
   }
