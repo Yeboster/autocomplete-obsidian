@@ -137,10 +137,11 @@ export class Autocomplete {
 
   public scanFile(file: TFile, strategy: TokenizeStrategy = 'default') {
     const providers = this.providers
-    file.vault.read(file).then((content: string) => {
+    file?.vault?.read(file).then((content: string) => {
       // TODO: Make it async
       providers.forEach((provider) => {
-        if (provider instanceof FlowProvider) provider.addWordsFrom(content)
+        if (provider instanceof FlowProvider)
+          provider.addWordsFrom(content, strategy)
       })
     })
   }
