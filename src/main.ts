@@ -99,7 +99,7 @@ export default class AutocompletePlugin extends Plugin {
   private addScanCommands() {
     TOKENIZE_STRATEGIES.forEach((type) => {
       const capitalized = type.replace(/^\w/, (c) => c.toLocaleUpperCase())
-      const name = `Autocomplete: Scan current file ${
+      const name = `Scan current file ${
         type !== 'default' ? `(${capitalized})` : ''
       }`
 
