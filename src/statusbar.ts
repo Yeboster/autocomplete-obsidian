@@ -17,7 +17,7 @@ export class StatusBarView {
   }
 
   addStatusBar() {
-    if (!this.settings.flowProviderScanCurrent) return
+    if (!this.settings.flowProvider) return
 
     const statusBar = this.plugin.addStatusBarItem()
     statusBar.addClass('mod-clickable')
