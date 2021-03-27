@@ -68,19 +68,17 @@ export default class AutocompletePlugin extends Plugin {
     this.autocomplete = new Autocomplete(this.settings)
 
     const settings = this.settings
-    if (settings.flowProviderScanCurrent)
+    if (this.settings.flowProvider) this.statusBar.addStatusBar()
+    if (settings.flowProviderScanCurrent) {
       // Passing autocomplete as context
       this.app.workspace.on('file-open', this.onFileOpened, this)
+      const file = this.app.workspace.getActiveFile()
+      this.autocomplete.scanFile(file, settings.flowProviderTokenizeStrategy)
+    }
 
     this.registerCodeMirror((editor) => {
       editor.on('keyup', this.keyUpListener)
     })
-
-    if (settings.flowProviderScanCurrent) {
-      this.statusBar.addStatusBar()
-      const file = this.app.workspace.getActiveFile()
-      this.autocomplete.scanFile(file, settings.flowProviderTokenizeStrategy)
-    }
   }
 
   disable() {

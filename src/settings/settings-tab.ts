@@ -110,7 +110,7 @@ export class AutocompleteSettingsTab extends PluginSettingTab {
               this.plugin.refresh()
             } else {
               new Notice(
-                'Cannot activate because flow provider is not enabled.'
+                'Cannot change because flow provider is not enabled.'
               )
             }
           }
