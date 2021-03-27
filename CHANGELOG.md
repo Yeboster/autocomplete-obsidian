@@ -1,3 +1,6 @@
+# 0.7.2
+- Fix JapaneseTokenizer
+
 # 0.7.1
 - Fix autocomplete scan exception and pass strategy
 - Show status bar when flowProvider is enabled
