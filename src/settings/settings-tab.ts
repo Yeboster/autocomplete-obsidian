@@ -110,7 +110,7 @@ export class AutocompleteSettingsTab extends PluginSettingTab {
               this.plugin.refresh()
             } else {
               new Notice(
-                "Cannot change because 'scan current file' setting is not enabled."
+                'Cannot activate because flow provider is not enabled.'
               )
             }
           }
