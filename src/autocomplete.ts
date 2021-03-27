@@ -63,6 +63,8 @@ export class Autocomplete {
   }
 
   public updateViewIn(editor: CodeMirror.Editor, event: KeyboardEvent) {
+    if (event.key === ' ') return this.removeViewFrom(editor)
+
     this.selected = updateSelectedSuggestionFrom(
       event,
       this.selected,
