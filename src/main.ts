@@ -1,17 +1,15 @@
 import { MarkdownView, Notice, Plugin, TFile } from 'obsidian'
 import { Autocomplete } from './autocomplete'
-import {
-  TokenizeStrategy,
-  TOKENIZE_STRATEGIES,
-} from './providers/flow/tokenizer'
+import { TOKENIZE_STRATEGIES } from './providers/flow/tokenizer'
 import { AutocompleteSettings } from './settings/settings'
 import { AutocompleteSettingsTab } from './settings/settings-tab'
+import { StatusBarView } from './statusbar'
 
 export default class AutocompletePlugin extends Plugin {
   private autocomplete: Autocomplete
   private lastUsedEditor: CodeMirror.Editor
 
-  private statusBar: HTMLElement
+  private statusBar: StatusBarView
 
   settings: AutocompleteSettings
 
@@ -25,6 +23,7 @@ export default class AutocompletePlugin extends Plugin {
 
     if (!this.settings.enabled) return
 
+    this.statusBar = new StatusBarView(this, this.settings)
     this.enable()
     this.addCommands()
   }
@@ -78,7 +77,7 @@ export default class AutocompletePlugin extends Plugin {
     })
 
     if (settings.flowProviderScanCurrent) {
-      this.addStatusBar()
+      this.statusBar.addStatusBar()
       const file = this.app.workspace.getActiveFile()
       this.autocomplete.scanFile(file, settings.flowProviderScanCurrentStrategy)
     }
@@ -89,7 +88,7 @@ export default class AutocompletePlugin extends Plugin {
     // Always remove to avoid any kind problem
     workspace.off('file-open', this.onFileOpened)
 
-    this.removeStatusBar()
+    this.statusBar.removeStatusBar()
 
     workspace.iterateCodeMirrors((cm) => {
       cm.off('keyup', this.keyUpListener)
@@ -124,47 +123,6 @@ export default class AutocompletePlugin extends Plugin {
         },
       })
     })
-  }
-
-  // TODO: Refactor statusBar methods into custom module
-  private addStatusBar() {
-    if (!this.settings.flowProviderScanCurrent) return
-
-    const statusBar = this.addStatusBarItem()
-    statusBar.addClass('mod-clickable')
-    statusBar.innerHTML = this.getStatusBarText(
-      this.settings.flowProviderScanCurrentStrategy
-    )
-    statusBar.addEventListener('click', this.onStatusBarClick)
-
-    this.statusBar = statusBar
-  }
-
-  private removeStatusBar() {
-    if (!this.statusBar) return
-
-    this.statusBar.removeEventListener('click', this.onStatusBarClick)
-    this.statusBar.remove()
-  }
-
-  private getStatusBarText(strategy: TokenizeStrategy) {
-    return `strategy: ${strategy}`
-  }
-
-  private onStatusBarClick = () => {
-    const currentStrategy = this.settings.flowProviderScanCurrentStrategy
-    const currentIndex = TOKENIZE_STRATEGIES.findIndex(
-      (strategy) => strategy === currentStrategy
-    )
-    const newStrategy =
-      currentIndex === TOKENIZE_STRATEGIES.length - 1
-        ? TOKENIZE_STRATEGIES[0]
-        : TOKENIZE_STRATEGIES[currentIndex + 1]
-
-    this.settings.flowProviderScanCurrentStrategy = newStrategy
-    this.saveData(this.settings)
-
-    this.statusBar.innerHTML = this.getStatusBarText(newStrategy)
   }
 
   private keyUpListener = (editor: CodeMirror.Editor, event: KeyboardEvent) => {
