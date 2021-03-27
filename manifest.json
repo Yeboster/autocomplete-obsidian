@@ -1,7 +1,7 @@
 {
   "id": "obsidian-autocomplete-plugin",
   "name": "Autocomplete",
-  "version": "0.6.2",
+  "version": "0.7.0",
   "minAppVersion": "0.10.0",
   "description": "This plugin provides a text autocomplete feature to enhance typing speed.",
   "author": "Yeboster",

@@ -1,3 +1,11 @@
+# 0.7.0
+- Improve sort order
+- Add current file scanning 🎉
+- Implement tokenizer for Arabic, Japanese languages and a default. Thanks @tadashi-aikawa!
+- Close autocomplete on space
+- Add statusbar for tokenizer
+- Prioritize FlowProvider suggestions.
+
 # 0.6.2
 - Fix removeView
 

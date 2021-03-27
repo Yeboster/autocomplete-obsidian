@@ -9,33 +9,6 @@ export function defaultDirection(): Direction {
   return { index: 0, direction: 'still' }
 }
 
-export function lastWordStartPos(text: string, index: number): number {
-  let wordStartIndex = index
-  const wordRegex = /[\w$]+/
-  while (wordStartIndex && wordRegex.test(text.charAt(wordStartIndex - 1)))
-    wordStartIndex -= 1
-
-  return wordStartIndex
-}
-
-export function lastWordIn(editor: CodeMirror.Editor): string | null {
-  const cursor = editor.getCursor()
-  const currentLine: string = editor.getLine(cursor.line)
-
-  const word = lastWordFrom(currentLine, cursor.ch)
-
-  return word
-}
-
-export function lastWordFrom(line: string, cursorIndex: number): string | null {
-  let wordStartIndex = lastWordStartPos(line, cursorIndex)
-  let word: string | null = null
-  if (wordStartIndex !== cursorIndex)
-    word = line.slice(wordStartIndex, cursorIndex)
-
-  return word
-}
-
 export function managePlaceholders(
   selectedValue: string,
   initialCursorIndex: number

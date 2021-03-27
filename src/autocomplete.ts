@@ -3,10 +3,7 @@ import {
   defaultDirection,
   managePlaceholders,
   updateSelectedSuggestionFrom,
-  lastWordIn,
   copyObject,
-  lastWordFrom,
-  lastWordStartPos,
 } from './autocomplete/core'
 import {
   generateView,
@@ -14,10 +11,16 @@ import {
   updateCachedView,
   scrollTo,
 } from './autocomplete/view'
+
 import { FlowProvider } from './providers/flow'
+import { TokenizeStrategy } from './providers/flow/tokenizer'
+import { TokenizerFactory } from './providers/flow/factory'
 import LaTexProvider from './providers/latex'
 import { Completion, Provider } from './providers/provider'
+
 import { AutocompleteSettings } from './settings/settings'
+
+import { TFile } from 'obsidian'
 
 export class Autocomplete {
   private providers: Provider[]
@@ -39,37 +42,45 @@ export class Autocomplete {
     this.view = null
   }
 
-  public isShown(): boolean {
+  public get isShown(): boolean {
     return this.view !== null
   }
 
   public toggleViewIn(editor: CodeMirror.Editor) {
     const isEnabled = this.settings.enabled
-    if (this.isShown() || !isEnabled) {
+    if (this.isShown || !isEnabled) {
       this.cursorAtTrigger = null
       this.removeViewFrom(editor)
     } else if (isEnabled) {
       const cursor = copyObject(editor.getCursor())
       const currentLine: string = editor.getLine(cursor.line)
 
-      const wordStartIndex = lastWordStartPos(currentLine, cursor.ch)
+      const wordStartIndex = this.tokenizer.lastWordStartPos(
+        currentLine,
+        cursor.ch
+      )
+      const cursorAt = cursor.ch
       cursor.ch = wordStartIndex
       this.cursorAtTrigger = cursor
 
-      const word = lastWordFrom(currentLine, cursor.ch)
+      const word = currentLine.slice(wordStartIndex, cursorAt)
 
       this.showViewIn(editor, word)
     }
   }
 
   public updateViewIn(editor: CodeMirror.Editor, event: KeyboardEvent) {
+    if (!event.ctrlKey && event.key === ' ') return this.removeViewFrom(editor)
+
     this.selected = updateSelectedSuggestionFrom(
       event,
       this.selected,
       this.suggestions.length
     )
 
-    const completionWord = lastWordIn(editor)
+    const cursor = copyObject(editor.getCursor())
+    const currentLine: string = editor.getLine(cursor.line)
+    const completionWord = this.tokenizer.lastWordFrom(currentLine, cursor.ch)
 
     const recreate = completionWord !== this.lastCompletionWord
     if (recreate) {
@@ -98,19 +109,48 @@ export class Autocomplete {
   }
 
   public updateProvidersFrom(event: KeyboardEvent, editor: CodeMirror.Editor) {
-    if (!event.ctrlKey && Provider.wordSeparatorRegex.test(event.key)) {
+    const tokenizer = TokenizerFactory.getTokenizer(
+      this.settings.flowProviderTokenizeStrategy
+    )
+    if (
+      !event.ctrlKey &&
+      (tokenizer.isWordSeparator(event.key) || event.key === 'Enter')
+    ) {
       const cursor = copyObject(editor.getCursor())
       if (/Enter/.test(event.key)) {
         cursor.line -= 1
-        cursor.ch = editor.getLine(cursor.line).length
+        const currentLine = editor.getLine(cursor.line)
+
+        // Changed editor pane
+        if (!currentLine) return
+
+        cursor.ch = currentLine.length
       }
       const line = editor.getLine(cursor.line)
       this.providers.forEach((provider) => {
         // For now only FlowProvider
         if (provider instanceof FlowProvider)
-          provider.addCompletionWord(line, cursor.ch)
+          provider.addLastWordFrom(line, cursor.ch, this.tokenizerStrategy)
       })
     }
+  }
+
+  public scanFile(file: TFile, strategy: TokenizeStrategy = 'default') {
+    const providers = this.providers
+    file.vault.read(file).then((content: string) => {
+      // TODO: Make it async
+      providers.forEach((provider) => {
+        if (provider instanceof FlowProvider) provider.addWordsFrom(content)
+      })
+    })
+  }
+
+  private get tokenizer() {
+    return TokenizerFactory.getTokenizer(this.tokenizerStrategy)
+  }
+
+  private get tokenizerStrategy() {
+    return this.settings.flowProviderTokenizeStrategy
   }
 
   private showViewIn(editor: CodeMirror.Editor, completionWord: string = '') {
@@ -168,7 +208,7 @@ export class Autocomplete {
         if (hintId && hintId.startsWith(hintIdPrefix)) {
           hintId = hintId.replace(hintIdPrefix, '')
           const id = parseInt(hintId)
-          if (id && id > 0 && id < this.suggestions.length) {
+          if (id >= 0 && id < this.suggestions.length) {
             this.selected.index = id
             this.selectSuggestion(editor)
           }
@@ -209,8 +249,8 @@ export class Autocomplete {
 
   private loadProviders() {
     const providers = []
-    if (this.settings.latexProvider) providers.push(new LaTexProvider())
     if (this.settings.flowProvider) providers.push(new FlowProvider())
+    if (this.settings.latexProvider) providers.push(new LaTexProvider())
 
     this.providers = providers
   }
