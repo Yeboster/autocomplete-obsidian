@@ -70,7 +70,7 @@ export class Autocomplete {
   }
 
   public updateViewIn(editor: CodeMirror.Editor, event: KeyboardEvent) {
-    if (event.key === ' ') return this.removeViewFrom(editor)
+    if (!event.ctrlKey && event.key === ' ') return this.removeViewFrom(editor)
 
     this.selected = updateSelectedSuggestionFrom(
       event,
@@ -110,7 +110,7 @@ export class Autocomplete {
 
   public updateProvidersFrom(event: KeyboardEvent, editor: CodeMirror.Editor) {
     const tokenizer = TokenizerFactory.getTokenizer(
-      this.settings.flowProviderScanCurrentStrategy
+      this.settings.flowProviderTokenizeStrategy
     )
     if (
       !event.ctrlKey &&
@@ -150,7 +150,7 @@ export class Autocomplete {
   }
 
   private get tokenizerStrategy() {
-    return this.settings.flowProviderScanCurrentStrategy
+    return this.settings.flowProviderTokenizeStrategy
   }
 
   private showViewIn(editor: CodeMirror.Editor, completionWord: string = '') {
@@ -249,8 +249,8 @@ export class Autocomplete {
 
   private loadProviders() {
     const providers = []
-    if (this.settings.latexProvider) providers.push(new LaTexProvider())
     if (this.settings.flowProvider) providers.push(new FlowProvider())
+    if (this.settings.latexProvider) providers.push(new LaTexProvider())
 
     this.providers = providers
   }

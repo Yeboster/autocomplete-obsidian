@@ -79,7 +79,7 @@ export default class AutocompletePlugin extends Plugin {
     if (settings.flowProviderScanCurrent) {
       this.statusBar.addStatusBar()
       const file = this.app.workspace.getActiveFile()
-      this.autocomplete.scanFile(file, settings.flowProviderScanCurrentStrategy)
+      this.autocomplete.scanFile(file, settings.flowProviderTokenizeStrategy)
     }
   }
 
@@ -99,7 +99,7 @@ export default class AutocompletePlugin extends Plugin {
   private addScanCommands() {
     TOKENIZE_STRATEGIES.forEach((type) => {
       const capitalized = type.replace(/^\w/, (c) => c.toLocaleUpperCase())
-      const name = `Autocomplete: Scan current file ${
+      const name = `Scan current file ${
         type !== 'default' ? `(${capitalized})` : ''
       }`
 

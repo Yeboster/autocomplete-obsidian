@@ -22,7 +22,7 @@ export class StatusBarView {
     const statusBar = this.plugin.addStatusBarItem()
     statusBar.addClass('mod-clickable')
     statusBar.innerHTML = this.getStatusBarText(
-      this.settings.flowProviderScanCurrentStrategy
+      this.settings.flowProviderTokenizeStrategy
     )
     statusBar.addEventListener('click', this.onStatusBarClick)
 
@@ -37,7 +37,7 @@ export class StatusBarView {
   }
 
   onStatusBarClick = () => {
-    const currentStrategy = this.settings.flowProviderScanCurrentStrategy
+    const currentStrategy = this.settings.flowProviderTokenizeStrategy
     const currentIndex = TOKENIZE_STRATEGIES.findIndex(
       (strategy) => strategy === currentStrategy
     )
@@ -46,7 +46,7 @@ export class StatusBarView {
         ? TOKENIZE_STRATEGIES[0]
         : TOKENIZE_STRATEGIES[currentIndex + 1]
 
-    this.settings.flowProviderScanCurrentStrategy = newStrategy
+    this.settings.flowProviderTokenizeStrategy = newStrategy
     this.plugin.saveData(this.settings)
 
     this.statusBar.innerHTML = this.getStatusBarText(newStrategy)

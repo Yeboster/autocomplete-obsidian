@@ -7,5 +7,5 @@ export class AutocompleteSettings {
   latexProvider: boolean = true
   flowProvider: boolean = true
   flowProviderScanCurrent: boolean = true
-  flowProviderScanCurrentStrategy: TokenizeStrategy = 'default'
+  flowProviderTokenizeStrategy: TokenizeStrategy = 'default'
 }
