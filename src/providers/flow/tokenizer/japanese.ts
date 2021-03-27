@@ -1,15 +1,16 @@
 import { TinySegmenter } from 'src/vendor/tiny-segmenter'
-import { Tokenizer, TRIM_CHAR_PATTERN } from '../tokenizer'
+import { Range, Tokenizer } from '../tokenizer'
 
-export class JapaneseTokenizer implements Tokenizer {
+export class JapaneseTokenizer extends Tokenizer {
   // TODO: Improve typings
   private tokenizer = TinySegmenter()
 
-  tokenize(text: string) {
+  tokenize(text: string, range?: Range) {
     const tokens: string[] = text
+      .slice(range?.start, range?.end)
       .split('\n')
       .flatMap<string>((line) => this.tokenizer.segment(line))
-      .map((t) => t.replace(TRIM_CHAR_PATTERN, ''))
+      .map((t) => t.replace(this.trimPattern, ''))
 
     return { tokens }
   }

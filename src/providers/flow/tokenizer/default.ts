@@ -1,15 +1,13 @@
-import { Tokenizer, TRIM_CHAR_PATTERN } from '../tokenizer'
+import { Range, Tokenizer } from '../tokenizer'
 
-export class DefaultTokenizer implements Tokenizer {
-  protected readonly trimPattern: RegExp = TRIM_CHAR_PATTERN
-
-  tokenize(text: string) {
+export class DefaultTokenizer extends Tokenizer {
+  tokenize(text: string, range?: Range) {
     const tokens = text
+      .slice(range?.start, range?.end)
       .split('\n')
       .flatMap<string>((line) => line.split(this.trimPattern))
-      .filter((t) => t.length > 0 && t !== ' ')
-      .map((t) => t.trim())
+      .filter((t) => t.length > 0)
 
-    return { tokens }
+    return { range, tokens }
   }
 }

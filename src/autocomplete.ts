@@ -3,10 +3,7 @@ import {
   defaultDirection,
   managePlaceholders,
   updateSelectedSuggestionFrom,
-  lastWordIn,
   copyObject,
-  lastWordFrom,
-  lastWordStartPos,
 } from './autocomplete/core'
 import {
   generateView,
@@ -14,13 +11,16 @@ import {
   updateCachedView,
   scrollTo,
 } from './autocomplete/view'
+
 import { FlowProvider } from './providers/flow'
+import { TokenizeStrategy } from './providers/flow/tokenizer'
+import { TokenizerFactory } from './providers/flow/factory'
 import LaTexProvider from './providers/latex'
 import { Completion, Provider } from './providers/provider'
+
 import { AutocompleteSettings } from './settings/settings'
 
-import {TFile} from 'obsidian'
-import {TokenizeStrategy} from './providers/flow/tokenizer'
+import { TFile } from 'obsidian'
 
 export class Autocomplete {
   private providers: Provider[]
@@ -55,11 +55,15 @@ export class Autocomplete {
       const cursor = copyObject(editor.getCursor())
       const currentLine: string = editor.getLine(cursor.line)
 
-      const wordStartIndex = lastWordStartPos(currentLine, cursor.ch)
+      const wordStartIndex = this.tokenizer.lastWordStartPos(
+        currentLine,
+        cursor.ch
+      )
+      const cursorAt = cursor.ch
       cursor.ch = wordStartIndex
       this.cursorAtTrigger = cursor
 
-      const word = lastWordFrom(currentLine, cursor.ch)
+      const word = currentLine.slice(wordStartIndex, cursorAt)
 
       this.showViewIn(editor, word)
     }
@@ -72,7 +76,9 @@ export class Autocomplete {
       this.suggestions.length
     )
 
-    const completionWord = lastWordIn(editor)
+    const cursor = copyObject(editor.getCursor())
+    const currentLine: string = editor.getLine(cursor.line)
+    const completionWord = this.tokenizer.lastWordFrom(currentLine, cursor.ch)
 
     const recreate = completionWord !== this.lastCompletionWord
     if (recreate) {
@@ -101,7 +107,13 @@ export class Autocomplete {
   }
 
   public updateProvidersFrom(event: KeyboardEvent, editor: CodeMirror.Editor) {
-    if (!event.ctrlKey && Provider.wordSeparatorRegex.test(event.key)) {
+    const tokenizer = TokenizerFactory.getTokenizer(
+      this.settings.flowProviderScanCurrentStrategy
+    )
+    if (
+      !event.ctrlKey &&
+      (tokenizer.isWordSeparator(event.key) || event.key === 'Enter')
+    ) {
       const cursor = copyObject(editor.getCursor())
       if (/Enter/.test(event.key)) {
         cursor.line -= 1
@@ -116,7 +128,7 @@ export class Autocomplete {
       this.providers.forEach((provider) => {
         // For now only FlowProvider
         if (provider instanceof FlowProvider)
-          provider.addLastWordFrom(line, cursor.ch)
+          provider.addLastWordFrom(line, cursor.ch, this.tokenizerStrategy)
       })
     }
   }
@@ -129,6 +141,14 @@ export class Autocomplete {
         if (provider instanceof FlowProvider) provider.addWordsFrom(content)
       })
     })
+  }
+
+  private get tokenizer() {
+    return TokenizerFactory.getTokenizer(this.tokenizerStrategy)
+  }
+
+  private get tokenizerStrategy() {
+    return this.settings.flowProviderScanCurrentStrategy
   }
 
   private showViewIn(editor: CodeMirror.Editor, completionWord: string = '') {
