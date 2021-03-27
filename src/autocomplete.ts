@@ -110,7 +110,7 @@ export class Autocomplete {
 
   public updateProvidersFrom(event: KeyboardEvent, editor: CodeMirror.Editor) {
     const tokenizer = TokenizerFactory.getTokenizer(
-      this.settings.flowProviderScanCurrentStrategy
+      this.settings.flowProviderTokenizeStrategy
     )
     if (
       !event.ctrlKey &&
@@ -150,7 +150,7 @@ export class Autocomplete {
   }
 
   private get tokenizerStrategy() {
-    return this.settings.flowProviderScanCurrentStrategy
+    return this.settings.flowProviderTokenizeStrategy
   }
 
   private showViewIn(editor: CodeMirror.Editor, completionWord: string = '') {

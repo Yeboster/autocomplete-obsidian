@@ -102,10 +102,10 @@ export class AutocompleteSettingsTab extends PluginSettingTab {
         })
 
         const settings = this.plugin.settings
-        cb.setValue(settings.flowProviderScanCurrentStrategy).onChange(
+        cb.setValue(settings.flowProviderTokenizeStrategy).onChange(
           (value: TokenizeStrategy) => {
-            if (settings.flowProvider && settings.flowProviderScanCurrent) {
-              this.plugin.settings.flowProviderScanCurrentStrategy = value
+            if (settings.flowProvider) {
+              this.plugin.settings.flowProviderTokenizeStrategy = value
               this.plugin.saveData(this.plugin.settings)
               this.plugin.refresh()
             } else {

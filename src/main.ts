@@ -79,7 +79,7 @@ export default class AutocompletePlugin extends Plugin {
     if (settings.flowProviderScanCurrent) {
       this.statusBar.addStatusBar()
       const file = this.app.workspace.getActiveFile()
-      this.autocomplete.scanFile(file, settings.flowProviderScanCurrentStrategy)
+      this.autocomplete.scanFile(file, settings.flowProviderTokenizeStrategy)
     }
   }
 
