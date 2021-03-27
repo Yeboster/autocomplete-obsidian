@@ -2,8 +2,8 @@ import { TinySegmenter } from 'src/vendor/tiny-segmenter'
 import { Range, Tokenizer } from '../tokenizer'
 
 export class JapaneseTokenizer extends Tokenizer {
-  // TODO: Improve typings
-  private tokenizer = TinySegmenter()
+  // @ts-ignore
+  private tokenizer = new TinySegmenter()
 
   tokenize(text: string, range?: Range) {
     const tokens: string[] = text
