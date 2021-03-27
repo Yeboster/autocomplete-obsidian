@@ -249,8 +249,8 @@ export class Autocomplete {
 
   private loadProviders() {
     const providers = []
-    if (this.settings.latexProvider) providers.push(new LaTexProvider())
     if (this.settings.flowProvider) providers.push(new FlowProvider())
+    if (this.settings.latexProvider) providers.push(new LaTexProvider())
 
     this.providers = providers
   }
