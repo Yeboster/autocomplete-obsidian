@@ -2,6 +2,7 @@
 
 This plugin provides a text autocomplete feature to enhance typing speed.
 
+<!-- TODO: Update preview gif -->
 ![Preview](https://media.giphy.com/media/CFbhjfTLDPnUm45vje/giphy.gif)
 
 > The plugin is still WIP, so if you encounter bugs please open an [Github issue](https://github.com/Yeboster/autocomplete-obsidian/issues/new/choose) with the steps to reproduce it.
@@ -14,13 +15,13 @@ There are the current and planned features:
 - Change suggestion with `Ctrl-n/p` or `up/down arrows` and select with `enter`
 - Autocomplete view style as Obsidian
 - Seamless integration with vim mode
-- Cursor placement on marks:
+- Cursor placement on marks (`#{}`):
   - Single cursor placement
-  - [ ] Multiple cursor placement on marks (Latex functions)
+  - [ ] Multiple cursor placement
 - Suggest completions with text providers:
   - LaTex
   - Flow (suggests words already written in the current session)
-  - [ ] Current file
+  - Current file
   - [ ] Custom file
 - [ ] Snippets support (h3 -> ###)
 - [ ] Proper layout management (Improve autocomplete popup position)
