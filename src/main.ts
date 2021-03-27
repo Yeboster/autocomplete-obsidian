@@ -1,12 +1,18 @@
 import { MarkdownView, Notice, Plugin, TFile } from 'obsidian'
 import { Autocomplete } from './autocomplete'
-import { TokenizeStrategy } from './providers/flow/tokenizer'
+import {
+  TokenizeStrategy,
+  TOKENIZE_STRATEGIES,
+} from './providers/flow/tokenizer'
 import { AutocompleteSettings } from './settings/settings'
 import { AutocompleteSettingsTab } from './settings/settings-tab'
 
 export default class AutocompletePlugin extends Plugin {
   private autocomplete: Autocomplete
   private lastUsedEditor: CodeMirror.Editor
+
+  private statusBar: HTMLElement
+
   settings: AutocompleteSettings
 
   async onload() {
@@ -61,18 +67,30 @@ export default class AutocompletePlugin extends Plugin {
 
   enable() {
     this.autocomplete = new Autocomplete(this.settings)
-    if (this.settings.flowProviderScanCurrent)
+
+    const settings = this.settings
+    if (settings.flowProviderScanCurrent)
       // Passing autocomplete as context
       this.app.workspace.on('file-open', this.onFileOpened, this)
+
     this.registerCodeMirror((editor) => {
       editor.on('keyup', this.keyUpListener)
     })
+
+    if (settings.flowProviderScanCurrent) {
+      this.addStatusBar()
+      const file = this.app.workspace.getActiveFile()
+      this.autocomplete.scanFile(file, settings.flowProviderScanCurrentStrategy)
+    }
   }
 
   disable() {
     const workspace = this.app.workspace
     // Always remove to avoid any kind problem
     workspace.off('file-open', this.onFileOpened)
+
+    this.removeStatusBar()
+
     workspace.iterateCodeMirrors((cm) => {
       cm.off('keyup', this.keyUpListener)
       this.autocomplete.removeViewFrom(cm)
@@ -80,8 +98,7 @@ export default class AutocompletePlugin extends Plugin {
   }
 
   private addScanCommands() {
-    const scanTypes: TokenizeStrategy[] = ['default', 'japanese', 'arabic']
-    scanTypes.forEach((type) => {
+    TOKENIZE_STRATEGIES.forEach((type) => {
       const capitalized = type.replace(/^\w/, (c) => c.toLocaleUpperCase())
       const name = `Autocomplete: Scan current file ${
         type !== 'default' ? `(${capitalized})` : ''
@@ -107,6 +124,47 @@ export default class AutocompletePlugin extends Plugin {
         },
       })
     })
+  }
+
+  // TODO: Refactor statusBar methods into custom module
+  private addStatusBar() {
+    if (!this.settings.flowProviderScanCurrent) return
+
+    const statusBar = this.addStatusBarItem()
+    statusBar.addClass('mod-clickable')
+    statusBar.innerHTML = this.getStatusBarText(
+      this.settings.flowProviderScanCurrentStrategy
+    )
+    statusBar.addEventListener('click', this.onStatusBarClick)
+
+    this.statusBar = statusBar
+  }
+
+  private removeStatusBar() {
+    if (!this.statusBar) return
+
+    this.statusBar.removeEventListener('click', this.onStatusBarClick)
+    this.statusBar.remove()
+  }
+
+  private getStatusBarText(strategy: TokenizeStrategy) {
+    return `strategy: ${strategy}`
+  }
+
+  private onStatusBarClick = () => {
+    const currentStrategy = this.settings.flowProviderScanCurrentStrategy
+    const currentIndex = TOKENIZE_STRATEGIES.findIndex(
+      (strategy) => strategy === currentStrategy
+    )
+    const newStrategy =
+      currentIndex === TOKENIZE_STRATEGIES.length - 1
+        ? TOKENIZE_STRATEGIES[0]
+        : TOKENIZE_STRATEGIES[currentIndex + 1]
+
+    this.settings.flowProviderScanCurrentStrategy = newStrategy
+    this.saveData(this.settings)
+
+    this.statusBar.innerHTML = this.getStatusBarText(newStrategy)
   }
 
   private keyUpListener = (editor: CodeMirror.Editor, event: KeyboardEvent) => {

@@ -1,4 +1,8 @@
 import { App, Notice, PluginSettingTab, Setting } from 'obsidian'
+import {
+  TokenizeStrategy,
+  TOKENIZE_STRATEGIES,
+} from 'src/providers/flow/tokenizer'
 import AutocompletePlugin from '../main'
 
 export class AutocompleteSettingsTab extends PluginSettingTab {
@@ -56,11 +60,13 @@ export class AutocompleteSettingsTab extends PluginSettingTab {
           if (!value)
             // Scan current file can be enabled only if flow provider is
             this.plugin.settings.flowProviderScanCurrent = false
+
           this.plugin.saveData(this.plugin.settings)
           this.plugin.refresh()
         })
       )
 
+    // TODO: Improve UI reactivity when parent setting is disabled
     new Setting(containerEl)
       .setName('Flow Provider: Scan current file')
       .setDesc(
@@ -81,6 +87,34 @@ export class AutocompleteSettingsTab extends PluginSettingTab {
             new Notice('Cannot activate because flow provider is not enabled.')
           }
         })
+      })
+
+    new Setting(containerEl)
+      .setName('Flow Provider: Scan current file strategy')
+      .setDesc('Choose the default scan strategy')
+      .addDropdown((cb) => {
+        // Add options
+        TOKENIZE_STRATEGIES.forEach((strategy) => {
+          const capitalized = strategy.replace(/^\w/, (c) =>
+            c.toLocaleUpperCase()
+          )
+          cb.addOption(strategy, capitalized)
+        })
+
+        const settings = this.plugin.settings
+        cb.setValue(settings.flowProviderScanCurrentStrategy).onChange(
+          (value: TokenizeStrategy) => {
+            if (settings.flowProvider && settings.flowProviderScanCurrent) {
+              this.plugin.settings.flowProviderScanCurrentStrategy = value
+              this.plugin.saveData(this.plugin.settings)
+              this.plugin.refresh()
+            } else {
+              new Notice(
+                "Cannot change because 'scan current file' setting is not enabled."
+              )
+            }
+          }
+        )
       })
   }
 }

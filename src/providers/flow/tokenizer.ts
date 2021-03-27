@@ -6,6 +6,7 @@ export const TRIM_CHAR_PATTERN = /[\[\]()<>"'.,|:; `!?\/]/g
 export const ARABIC_TRIM_CHAR_PATTERN = /[\[\]()<>"'.,|; `،؛]/g
 
 export type TokenizeStrategy = 'default' | 'japanese' | 'arabic'
+export const TOKENIZE_STRATEGIES: TokenizeStrategy[] =  ['default', 'japanese', 'arabic']
 
 // TODO: Should logic be uniformed with current word tokenization ?
 export interface TokenizedResult {
