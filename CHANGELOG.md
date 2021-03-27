@@ -1,10 +1,15 @@
+# 0.7.1
+- Fix autocomplete scan exception and pass strategy
+- Show status bar when flowProvider is enabled
+- Update validation message for status bar
+
 # 0.7.0
 - Improve sort order
 - Add current file scanning 🎉
 - Implement tokenizer for Arabic, Japanese languages and a default. Thanks @tadashi-aikawa!
 - Close autocomplete on space
 - Add statusbar for tokenizer
-- Prioritize FlowProvider suggestions.
+- Prioritize FlowProvider suggestions
 
 # 0.6.2
 - Fix removeView
