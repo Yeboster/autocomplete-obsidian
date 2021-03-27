@@ -1,15 +1,26 @@
 import { lastWordFrom } from '../autocomplete/core'
+import { TokenizeStrategy, tokenizeText } from './flow/tokenizer'
 import { Provider } from './provider'
 
 export class FlowProvider extends Provider {
   category = 'F'
-  completions = []
+  completions: string[] = []
 
-  addCompletionWord(line: string, cursorIndex: number): void {
+  addLastWordFrom(line: string, cursorIndex: number): void {
     const { normalized, updatedCursor } = this.normalizedLine(line, cursorIndex)
 
     const word = lastWordFrom(normalized, updatedCursor)
 
+    this.addWord(word)
+  }
+
+  addWordsFrom(text: string, strategy: TokenizeStrategy = 'default') {
+    const result = tokenizeText(text, strategy)
+
+    result.tokens.forEach((token) => this.addWord(token))
+  }
+
+  private addWord(word: string) {
     if (!word || this.alreadyAdded(word)) return
 
     this.completions.push(word)

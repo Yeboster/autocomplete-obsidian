@@ -115,7 +115,7 @@ export class Autocomplete {
       this.providers.forEach((provider) => {
         // For now only FlowProvider
         if (provider instanceof FlowProvider)
-          provider.addCompletionWord(line, cursor.ch)
+          provider.addLastWordFrom(line, cursor.ch)
       })
     }
   }
@@ -127,10 +127,10 @@ export class Autocomplete {
   public onFileOpened(file: TFile) {
     const providers = this.providers
     file.vault.read(file).then((content) => {
+      // TODO: Make it async
       providers.forEach((provider) => {
         if (provider instanceof FlowProvider)
-          // TODO: Update flow provider suggestions
-          console.log('scanning file...')
+          provider.addWordsFrom(content)
       })
     })
   }
