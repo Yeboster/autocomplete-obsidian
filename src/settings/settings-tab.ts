@@ -66,6 +66,32 @@ export class AutocompleteSettingsTab extends PluginSettingTab {
         })
       )
 
+    new Setting(containerEl)
+      .setName('Flow Provider: Scan strategy')
+      .setDesc('Choose the default scan strategy')
+      .addDropdown((cb) => {
+        // Add options
+        TOKENIZE_STRATEGIES.forEach((strategy) => {
+          const capitalized = strategy.replace(/^\w/, (c) =>
+            c.toLocaleUpperCase()
+          )
+          cb.addOption(strategy, capitalized)
+        })
+
+        const settings = this.plugin.settings
+        cb.setValue(settings.flowProviderTokenizeStrategy).onChange(
+          (value: TokenizeStrategy) => {
+            if (settings.flowProvider) {
+              this.plugin.settings.flowProviderTokenizeStrategy = value
+              this.plugin.saveData(this.plugin.settings)
+              this.plugin.refresh()
+            } else {
+              new Notice('Cannot change because flow provider is not enabled.')
+            }
+          }
+        )
+      })
+
     // TODO: Improve UI reactivity when parent setting is disabled
     new Setting(containerEl)
       .setName('Flow Provider: Scan current file')
@@ -87,34 +113,6 @@ export class AutocompleteSettingsTab extends PluginSettingTab {
             new Notice('Cannot activate because flow provider is not enabled.')
           }
         })
-      })
-
-    new Setting(containerEl)
-      .setName('Flow Provider: Scan current file strategy')
-      .setDesc('Choose the default scan strategy')
-      .addDropdown((cb) => {
-        // Add options
-        TOKENIZE_STRATEGIES.forEach((strategy) => {
-          const capitalized = strategy.replace(/^\w/, (c) =>
-            c.toLocaleUpperCase()
-          )
-          cb.addOption(strategy, capitalized)
-        })
-
-        const settings = this.plugin.settings
-        cb.setValue(settings.flowProviderTokenizeStrategy).onChange(
-          (value: TokenizeStrategy) => {
-            if (settings.flowProvider) {
-              this.plugin.settings.flowProviderTokenizeStrategy = value
-              this.plugin.saveData(this.plugin.settings)
-              this.plugin.refresh()
-            } else {
-              new Notice(
-                'Cannot change because flow provider is not enabled.'
-              )
-            }
-          }
-        )
       })
   }
 }
