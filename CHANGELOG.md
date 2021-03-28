@@ -1,3 +1,11 @@
+# 0.7.3
+- Use layoutReady event to scan file on load
+- Avoid showing redundant suggestions (input is equal)
+- Fix duplicated suggestions
+- Select automatically suggestion if there is only one
+- Partially revert sort order to show shorter words first
+- Improve settings tab (order and settings name)
+
 # 0.7.2
 - Fix JapaneseTokenizer
 
