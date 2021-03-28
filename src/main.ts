@@ -70,10 +70,10 @@ export default class AutocompletePlugin extends Plugin {
     const settings = this.settings
     if (this.settings.flowProvider) this.statusBar.addStatusBar()
     if (settings.flowProviderScanCurrent) {
-      // Passing autocomplete as context
       this.app.workspace.on('file-open', this.onFileOpened, this)
-      const file = this.app.workspace.getActiveFile()
-      this.autocomplete.scanFile(file, settings.flowProviderTokenizeStrategy)
+
+      if (this.app.workspace.layoutReady) this.onLayoutReady()
+      this.app.workspace.on('layout-ready', this.onLayoutReady, this)
     }
 
     this.registerCodeMirror((editor) => {
@@ -85,6 +85,7 @@ export default class AutocompletePlugin extends Plugin {
     const workspace = this.app.workspace
     // Always remove to avoid any kind problem
     workspace.off('file-open', this.onFileOpened)
+    workspace.off('layout-ready', this.onLayoutReady)
 
     this.statusBar.removeStatusBar()
 
@@ -134,8 +135,21 @@ export default class AutocompletePlugin extends Plugin {
     this.autocomplete.updateViewIn(editor, event)
   }
 
+  private onLayoutReady() {
+    const file = this.app.workspace.getActiveFile()
+    if (file)
+      this.autocomplete.scanFile(
+        file,
+        this.settings.flowProviderTokenizeStrategy
+      )
+  }
+
   private onFileOpened(file: TFile) {
-    this.autocomplete.scanFile(file)
+    if (file)
+      this.autocomplete.scanFile(
+        file,
+        this.settings.flowProviderTokenizeStrategy
+      )
   }
 
   private getValidEditorFor(
