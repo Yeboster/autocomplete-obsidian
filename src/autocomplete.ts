@@ -137,7 +137,7 @@ export class Autocomplete {
 
   public scanFile(file: TFile, strategy: TokenizeStrategy = 'default') {
     const providers = this.providers
-    file?.vault?.read(file).then((content: string) => {
+    file.vault?.read(file).then((content: string) => {
       // TODO: Make it async
       providers.forEach((provider) => {
         if (provider instanceof FlowProvider)
@@ -161,12 +161,17 @@ export class Autocomplete {
       (acc, provider) => acc.concat(provider.matchWith(completionWord || '')),
       []
     )
+    if (this.suggestions.length === 1) {
+      // Suggest automatically
+      this.selected.index = 0
+      this.selectSuggestion(editor)
+    } else {
+      editor.addKeyMap(this.keyMaps)
 
-    editor.addKeyMap(this.keyMaps)
-
-    this.view = generateView(this.suggestions, this.selected.index)
-    this.addClickListener(this.view, editor)
-    appendWidget(editor, this.view)
+      this.view = generateView(this.suggestions, this.selected.index)
+      this.addClickListener(this.view, editor)
+      appendWidget(editor, this.view)
+    }
   }
 
   private keyMaps = {
