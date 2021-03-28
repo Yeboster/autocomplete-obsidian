@@ -20,6 +20,11 @@ export abstract class Provider {
           : false
       )
       .sort((a, b) => a.localeCompare(b))
+      .sort(
+        (a, b) =>
+          Number(b.toLowerCase().startsWith(inputLowered)) -
+          Number(a.toLowerCase().startsWith(inputLowered))
+      )
       .map((suggestion) => {
         return { category: this.category, value: suggestion }
       })
