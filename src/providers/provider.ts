@@ -13,11 +13,13 @@ export abstract class Provider {
     // Otherwise, uses case-insensitive logic
     const suggestions = this.completions
       .filter((suggestion) =>
-        inputHasUpperCase
-          ? suggestion.includes(input)
-          : suggestion.toLowerCase().includes(inputLowered)
+        suggestion != input
+          ? inputHasUpperCase
+            ? suggestion.includes(input)
+            : suggestion.toLowerCase().includes(inputLowered)
+          : false
       )
-      .sort((a,b) => a.localeCompare(b))
+      .sort((a, b) => a.localeCompare(b))
       .map((suggestion) => {
         return { category: this.category, value: suggestion }
       })

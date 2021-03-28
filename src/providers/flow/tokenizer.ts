@@ -48,10 +48,22 @@ export abstract class Tokenizer {
     cursorIndex: number,
     options: TokenizerOptions = { normalize: false }
   ): string | null {
-    let wordStartIndex = this.lastWordStartPos(text, cursorIndex, options)
+    const { normalized, updatedCursor } = options.normalize
+      ? this.normalizedLine(text, cursorIndex)
+      : { normalized: text, updatedCursor: cursorIndex }
+
+    if (options.normalize)
+      // Already normalized
+      options.normalize = false
+
+    let wordStartIndex = this.lastWordStartPos(
+      normalized,
+      updatedCursor,
+      options
+    )
     let word: string | null = null
-    if (wordStartIndex !== cursorIndex)
-      word = text.slice(wordStartIndex, cursorIndex)
+    if (wordStartIndex !== updatedCursor)
+      word = text.slice(wordStartIndex, updatedCursor)
 
     return word
   }
