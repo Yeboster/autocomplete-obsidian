@@ -129,7 +129,10 @@ export default class AutocompletePlugin extends Plugin {
   /*
    * Listener used to trigger autocomplete
    */
-  private keyDownListener = (editor: CodeMirror.Editor, event: KeyboardEvent) => {
+  private keyDownListener = (
+    editor: CodeMirror.Editor,
+    event: KeyboardEvent
+  ) => {
     const autocomplete = this.autocomplete
 
     if (!autocomplete.isShown) return
