@@ -14,6 +14,7 @@ export type Range = { start?: number; end?: number }
 export type TokenizerOptions = { normalize: boolean }
 
 export abstract class Tokenizer {
+  protected readonly invalidWordPattern: RegExp = /[*-_#+\d]/
   protected readonly wordSeparatorPattern: RegExp = /[\[\]()<>"'.,|:; `!?\/]/
   protected readonly trimPattern: RegExp
 
@@ -70,6 +71,14 @@ export abstract class Tokenizer {
 
   isWordSeparator(char: string) {
     return this.wordSeparatorPattern.test(char)
+  }
+
+  /*
+   * Checks if the word is invalid.
+   * To be invalid it must contains only invalid chars.
+   */
+  isInvalidWord(word: string) {
+    return word.split('').every((char) => this.invalidWordPattern.test(char))
   }
 
   /*
