@@ -77,6 +77,7 @@ export default class AutocompletePlugin extends Plugin {
     }
 
     this.registerCodeMirror((editor) => {
+      editor.on('keydown', this.keyDownListener)
       editor.on('keyup', this.keyUpListener)
     })
   }
@@ -91,6 +92,7 @@ export default class AutocompletePlugin extends Plugin {
 
     workspace.iterateCodeMirrors((cm) => {
       cm.off('keyup', this.keyUpListener)
+      cm.off('keydown', this.keyDownListener)
       this.autocomplete.removeViewFrom(cm)
     })
   }
@@ -124,15 +126,25 @@ export default class AutocompletePlugin extends Plugin {
     })
   }
 
-  private keyUpListener = (editor: CodeMirror.Editor, event: KeyboardEvent) => {
+  /*
+   * Listener used to trigger autocomplete
+   */
+  private keyDownListener = (editor: CodeMirror.Editor, event: KeyboardEvent) => {
     const autocomplete = this.autocomplete
-    autocomplete.updateProvidersFrom(event, editor)
 
     if (!autocomplete.isShown) return
 
     this.updateEditorIfChanged(editor, autocomplete)
 
     this.autocomplete.updateViewIn(editor, event)
+  }
+
+  /*
+   * Listener used to scan current word
+   */
+  private keyUpListener = (editor: CodeMirror.Editor, event: KeyboardEvent) => {
+    const autocomplete = this.autocomplete
+    autocomplete.updateProvidersFrom(event, editor)
   }
 
   private onLayoutReady() {
