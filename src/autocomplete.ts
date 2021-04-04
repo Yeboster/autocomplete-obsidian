@@ -4,6 +4,7 @@ import {
   managePlaceholders,
   updateSelectedSuggestionFrom,
   copyObject,
+  selectLastSuggestion,
 } from './autocomplete/core'
 import {
   generateView,
@@ -46,7 +47,7 @@ export class Autocomplete {
     return this.view !== null
   }
 
-  public toggleViewIn(editor: CodeMirror.Editor) {
+  public toggleViewIn(editor: CodeMirror.Editor, autoSelect: boolean = true) {
     const isEnabled = this.settings.enabled
     if (this.isShown || !isEnabled) {
       this.cursorAtTrigger = null
@@ -65,18 +66,26 @@ export class Autocomplete {
 
       const word = currentLine.slice(wordStartIndex, cursorAt)
 
-      this.showViewIn(editor, word)
+      this.showViewIn(editor, word, autoSelect)
     }
   }
 
-  public updateViewIn(editor: CodeMirror.Editor, event: KeyboardEvent) {
+  public updateViewIn(
+    editor: CodeMirror.Editor,
+    event: KeyboardEvent,
+    options: { updateSelected: boolean; autoSelect: boolean } = {
+      updateSelected: true,
+      autoSelect: true,
+    }
+  ) {
     if (!event.ctrlKey && event.key === ' ') return this.removeViewFrom(editor)
 
-    this.selected = updateSelectedSuggestionFrom(
-      event,
-      this.selected,
-      this.suggestions.length
-    )
+    if (options.updateSelected)
+      this.selected = updateSelectedSuggestionFrom(
+        event,
+        this.selected,
+        this.suggestions.length
+      )
 
     const cursor = copyObject(editor.getCursor())
     const currentLine: string = editor.getLine(cursor.line)
@@ -85,7 +94,7 @@ export class Autocomplete {
     const recreate = completionWord !== this.lastCompletionWord
     if (recreate) {
       this.lastCompletionWord = completionWord
-      this.showViewIn(editor, completionWord)
+      this.showViewIn(editor, completionWord, options.autoSelect)
     } else updateCachedView(this.view, this.selected.index)
 
     scrollTo(this.selected, this.view, this.suggestions.length)
@@ -146,6 +155,14 @@ export class Autocomplete {
     })
   }
 
+  // TODO: Improve suggestions public API
+  public selectLastSuggestion() {
+    this.selected = {
+      index: this.suggestions.length - 1,
+      direction: 'backward',
+    }
+  }
+
   private get tokenizer() {
     return TokenizerFactory.getTokenizer(this.tokenizerStrategy)
   }
@@ -154,14 +171,19 @@ export class Autocomplete {
     return this.settings.flowProviderTokenizeStrategy
   }
 
-  private showViewIn(editor: CodeMirror.Editor, completionWord: string = '') {
+  private showViewIn(
+    editor: CodeMirror.Editor,
+    completionWord: string = '',
+    autoSelect: boolean = true
+  ) {
     if (this.view) this.removeViewFrom(editor)
 
     this.suggestions = this.providers.reduce(
       (acc, provider) => acc.concat(provider.matchWith(completionWord || '')),
       []
     )
-    if (this.suggestions.length === 1) {
+
+    if (autoSelect && this.suggestions.length === 1) {
       // Suggest automatically
       this.selected.index = 0
       this.selectSuggestion(editor)

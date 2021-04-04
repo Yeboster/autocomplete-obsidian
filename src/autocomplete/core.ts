@@ -31,20 +31,29 @@ export function managePlaceholders(
   return { normalizedValue, newCursorPosition }
 }
 
+export function selectLastSuggestion(
+  selected: Direction,
+  suggestionsLength: number
+): Direction {
+  const decreased = selected.index - 1
+  const updatedSelected: Direction = {
+    index: decreased < 0 ? suggestionsLength - 1 : decreased,
+    direction: 'backward',
+  }
+
+  return updatedSelected
+}
+
 export function updateSelectedSuggestionFrom(
   event: KeyboardEvent,
   selected: Direction,
   suggestionsLength: number
-) {
+): Direction {
   let updatedSelected: Direction = selected
   switch (`${event.ctrlKey} ${event.key}`) {
     case 'true p':
     case 'false ArrowUp':
-      const decreased = selected.index - 1
-      updatedSelected = {
-        index: decreased < 0 ? suggestionsLength - 1 : decreased,
-        direction: 'backward',
-      }
+      updatedSelected = selectLastSuggestion(selected, suggestionsLength)
       break
     case 'true n':
     case 'false ArrowDown':
@@ -61,4 +70,8 @@ export function updateSelectedSuggestionFrom(
 
 export function copyObject(obj: any): any {
   return { ...obj }
+}
+
+export function isVimNormalMode(editor: CodeMirror.Editor): boolean {
+  return editor.getOption('keyMap') === 'vim'
 }

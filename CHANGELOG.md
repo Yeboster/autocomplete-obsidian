@@ -1,3 +1,7 @@
+# 0.7.4
+- Fix autocomplete trigger by using key-down event
+- Implement optional trigger like vim (ctrl-n/p)
+
 # 0.7.3
 - Use layoutReady event to scan file on load
 - Avoid showing redundant suggestions (input is equal)

@@ -1,5 +1,6 @@
 import { MarkdownView, Notice, Plugin, TFile } from 'obsidian'
 import { Autocomplete } from './autocomplete'
+import { isVimNormalMode } from './autocomplete/core'
 import { TOKENIZE_STRATEGIES } from './providers/flow/tokenizer'
 import { AutocompleteSettings } from './settings/settings'
 import { AutocompleteSettingsTab } from './settings/settings-tab'
@@ -54,7 +55,7 @@ export default class AutocompletePlugin extends Plugin {
 
         if (editor) {
           // Do not open on vim normal mode
-          if (editor.getOption('keyMap') === 'vim') return
+          if (isVimNormalMode(editor)) return
 
           autocomplete.toggleViewIn(editor)
         }
@@ -77,6 +78,7 @@ export default class AutocompletePlugin extends Plugin {
     }
 
     this.registerCodeMirror((editor) => {
+      editor.on('keydown', this.keyDownListener)
       editor.on('keyup', this.keyUpListener)
     })
   }
@@ -91,6 +93,7 @@ export default class AutocompletePlugin extends Plugin {
 
     workspace.iterateCodeMirrors((cm) => {
       cm.off('keyup', this.keyUpListener)
+      cm.off('keydown', this.keyDownListener)
       this.autocomplete.removeViewFrom(cm)
     })
   }
@@ -124,15 +127,49 @@ export default class AutocompletePlugin extends Plugin {
     })
   }
 
-  private keyUpListener = (editor: CodeMirror.Editor, event: KeyboardEvent) => {
+  /*
+   * Listener used to trigger autocomplete
+   */
+  private keyDownListener = (
+    editor: CodeMirror.Editor,
+    event: KeyboardEvent
+  ) => {
     const autocomplete = this.autocomplete
-    autocomplete.updateProvidersFrom(event, editor)
+
+    // TODO: Refactor autocomplete behavior options
+    // Trigger like Vim autocomplete (ctrl+p/n)
+    let updateSelected = true
+    let autoSelect = true
+    if (
+      this.settings.triggerLikeVim &&
+      !isVimNormalMode(editor) &&
+      !autocomplete.isShown &&
+      event.ctrlKey &&
+      (event.key === 'n' || event.key === 'p')
+    ) {
+      // Do not update since we are changing selected
+      updateSelected = false
+      // Do not auto select otherwise cursor jumps on an another line
+      autoSelect = false
+
+      autocomplete.toggleViewIn(editor, autoSelect)
+
+      if (event.key === 'p') autocomplete.selectLastSuggestion()
+    }
 
     if (!autocomplete.isShown) return
 
     this.updateEditorIfChanged(editor, autocomplete)
 
-    this.autocomplete.updateViewIn(editor, event)
+    autocomplete.updateViewIn(editor, event, { updateSelected, autoSelect })
+  }
+
+  /*
+   * Listener used to scan current word
+   */
+  private keyUpListener = (editor: CodeMirror.Editor, event: KeyboardEvent) => {
+    const autocomplete = this.autocomplete
+    autocomplete.updateProvidersFrom(event, editor)
   }
 
   private onLayoutReady() {

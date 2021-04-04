@@ -31,6 +31,17 @@ export class AutocompleteSettingsTab extends PluginSettingTab {
         })
       )
 
+    new Setting(containerEl)
+      .setName('Trigger like Vim autocomplete')
+      .setDesc('Use CTRL-P/N bindings to trigger autocomplete. Be aware of keybinding clash on Windows (ctrl-n)')
+      .addToggle((cb) =>
+        cb.setValue(this.plugin.settings.triggerLikeVim).onChange((value) => {
+          this.plugin.settings.triggerLikeVim = value
+          this.plugin.saveData(this.plugin.settings)
+          this.plugin.refresh()
+        })
+      )
+
     // Providers
     new Setting(containerEl)
       .setName('Text Providers')
