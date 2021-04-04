@@ -1,3 +1,5 @@
+- Fix autocomplete trigger by using key-down event
+
 # 0.7.3
 - Use layoutReady event to scan file on load
 - Avoid showing redundant suggestions (input is equal)
