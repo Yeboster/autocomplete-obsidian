@@ -33,9 +33,9 @@ export class AutocompleteSettingsTab extends PluginSettingTab {
       )
 
     new Setting(containerEl)
-      .setName('Auto trigger')
+      .setName('Auto trigger (Beta)')
       .setDesc(
-        "Trigger autocomplete on every keystroke"
+        "Trigger autocomplete on printable keystroke that are not word separators"
       )
       .addToggle((cb) =>
         cb.setValue(this.plugin.settings.autoTrigger).onChange((value) => {
