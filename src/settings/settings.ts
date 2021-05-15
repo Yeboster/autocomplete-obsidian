@@ -7,6 +7,7 @@ export class AutocompleteSettings {
    * Trigger on ctrl-p/n bindings
    */
   triggerLikeVim: boolean = false
+  autoSelect: boolean = true
 
   // TODO: Refactor provider settings
   latexProvider: boolean = true

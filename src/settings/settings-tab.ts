@@ -13,6 +13,7 @@ export class AutocompleteSettingsTab extends PluginSettingTab {
     this.plugin = plugin
   }
 
+  // TODO: Refactor
   display(): void {
     const { containerEl } = this
 
@@ -32,13 +33,40 @@ export class AutocompleteSettingsTab extends PluginSettingTab {
       )
 
     new Setting(containerEl)
+      .setName('Auto select')
+      .setDesc(
+        "Auto select suggestion if there is only one. Not compatible with 'Trigger like Vim'"
+      )
+      .addToggle((cb) =>
+        cb.setValue(this.plugin.settings.autoSelect).onChange((value) => {
+          if (this.plugin.settings.triggerLikeVim)
+            this.plugin.settings.triggerLikeVim = false
+
+          this.plugin.settings.autoSelect = value
+          this.plugin.saveData(this.plugin.settings)
+          this.plugin.refresh()
+
+          // Render again
+          this.display()
+        })
+      )
+
+    new Setting(containerEl)
       .setName('Trigger like Vim autocomplete')
-      .setDesc('Use CTRL-P/N bindings to trigger autocomplete. Be aware of keybinding clash on Windows (ctrl-n)')
+      .setDesc(
+        'Use CTRL-P/N bindings to trigger autocomplete. Be aware of keybinding clash on Windows (ctrl-n). Not compatible with "auto select" setting'
+      )
       .addToggle((cb) =>
         cb.setValue(this.plugin.settings.triggerLikeVim).onChange((value) => {
+          if (this.plugin.settings.autoSelect)
+            this.plugin.settings.autoSelect = false
+
           this.plugin.settings.triggerLikeVim = value
           this.plugin.saveData(this.plugin.settings)
           this.plugin.refresh()
+
+          // Render again
+          this.display()
         })
       )
 
@@ -46,7 +74,7 @@ export class AutocompleteSettingsTab extends PluginSettingTab {
     new Setting(containerEl)
       .setName('Text Providers')
       .setDesc(
-        'The providers below suggest completions based on input. Be aware that enabling multiple providers can decrease performance.'
+        'The providers below suggest completions based on input. Be aware that enabling multiple providers can decrease performance'
       )
       .setHeading()
 
@@ -64,7 +92,7 @@ export class AutocompleteSettingsTab extends PluginSettingTab {
 
     new Setting(containerEl)
       .setName('Flow Provider')
-      .setDesc('Learns as you type. For now limited to current session.')
+      .setDesc('Learns as you type. For now limited to current session')
       .addToggle((cb) =>
         cb.setValue(this.plugin.settings.flowProvider).onChange((value) => {
           this.plugin.settings.flowProvider = value
@@ -74,6 +102,9 @@ export class AutocompleteSettingsTab extends PluginSettingTab {
 
           this.plugin.saveData(this.plugin.settings)
           this.plugin.refresh()
+
+          // Render again
+          this.display()
         })
       )
 
@@ -123,6 +154,9 @@ export class AutocompleteSettingsTab extends PluginSettingTab {
             cb.setValue(false)
             new Notice('Cannot activate because flow provider is not enabled.')
           }
+
+          // Render again
+          this.display()
         })
       })
   }
