@@ -35,7 +35,7 @@ export class AutocompleteSettingsTab extends PluginSettingTab {
     new Setting(containerEl)
       .setName('Auto trigger')
       .setDesc(
-        "Trigger autocomplete on every keystroke. Not compatible with 'Trigger like Vim' and 'auto select'"
+        "Trigger autocomplete on every keystroke"
       )
       .addToggle((cb) =>
         cb.setValue(this.plugin.settings.autoTrigger).onChange((value) => {
@@ -56,7 +56,7 @@ export class AutocompleteSettingsTab extends PluginSettingTab {
     new Setting(containerEl)
       .setName('Auto select')
       .setDesc(
-        "Auto select suggestion if there is only one. Not compatible with 'Trigger like Vim' and 'Auto Trigger'"
+        "Auto select suggestion if there is only one"
       )
       .addToggle((cb) =>
         cb.setValue(this.plugin.settings.autoSelect).onChange((value) => {
@@ -77,7 +77,7 @@ export class AutocompleteSettingsTab extends PluginSettingTab {
     new Setting(containerEl)
       .setName('Trigger like Vim autocomplete')
       .setDesc(
-        'Use CTRL-P/N bindings to trigger autocomplete. Be aware of keybinding clash on Windows (ctrl-n). Not compatible with "auto select" setting'
+        'Use CTRL-P/N bindings to trigger autocomplete. Be aware of keybinding clash on Windows (ctrl-n)'
       )
       .addToggle((cb) =>
         cb.setValue(this.plugin.settings.triggerLikeVim).onChange((value) => {
