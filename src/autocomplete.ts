@@ -176,18 +176,18 @@ export class Autocomplete {
     completionWord: string = '',
     autoSelect: boolean = true
   ) {
-    if (this.view) this.removeViewFrom(editor)
-
     this.suggestions = this.providers.reduce(
       (acc, provider) => acc.concat(provider.matchWith(completionWord || '')),
       []
     )
 
-    if (autoSelect && this.suggestions.length === 1) {
+    if (!this.isShown && autoSelect && this.suggestions.length === 1) {
       // Suggest automatically
       this.selected.index = 0
       this.selectSuggestion(editor)
     } else {
+      if (this.view) this.removeViewFrom(editor)
+
       editor.addKeyMap(this.keyMaps)
 
       this.view = generateView(this.suggestions, this.selected.index)
