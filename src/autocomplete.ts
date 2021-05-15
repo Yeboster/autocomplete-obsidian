@@ -182,7 +182,7 @@ export class Autocomplete {
     }
   }
 
-  private get tokenizer() {
+  public get tokenizer() {
     return TokenizerFactory.getTokenizer(this.tokenizerStrategy)
   }
 

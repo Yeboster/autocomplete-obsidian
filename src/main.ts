@@ -166,6 +166,7 @@ export default class AutocompletePlugin extends Plugin {
     } else if (
       settings.autoTrigger &&
       !isVimNormalMode(editor) &&
+      !autocomplete.tokenizer.isWordSeparator(event.key) &&
       isKeyboardCodePrintable(event.code)
     ) {
       this.justTriggered = true
