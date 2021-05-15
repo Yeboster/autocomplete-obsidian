@@ -47,7 +47,17 @@ export class Autocomplete {
     return this.view !== null
   }
 
-  public toggleViewIn(editor: CodeMirror.Editor, autoSelect: boolean = true) {
+  // TODO: Create settings type
+  public toggleViewIn(
+    editor: CodeMirror.Editor,
+    {
+      autoSelect,
+      showEmptyMatch,
+    }: { autoSelect: boolean; showEmptyMatch: boolean } = {
+      autoSelect: true,
+      showEmptyMatch: true,
+    }
+  ) {
     const isEnabled = this.settings.enabled
     if (this.isShown || !isEnabled) {
       this.cursorAtTrigger = null
@@ -66,21 +76,30 @@ export class Autocomplete {
 
       const word = currentLine.slice(wordStartIndex, cursorAt)
 
-      this.showViewIn(editor, word, autoSelect)
+      this.showViewIn(editor, word, { autoSelect, showEmptyMatch })
     }
   }
 
   public updateViewIn(
     editor: CodeMirror.Editor,
     event: KeyboardEvent,
-    options: { updateSelected: boolean; autoSelect: boolean } = {
+    {
+      updateSelected,
+      autoSelect,
+      showEmptyMatch,
+    }: {
+      updateSelected: boolean
+      autoSelect: boolean
+      showEmptyMatch: boolean
+    } = {
       updateSelected: true,
       autoSelect: true,
+      showEmptyMatch: true,
     }
   ) {
     if (!event.ctrlKey && event.key === ' ') return this.removeViewFrom(editor)
 
-    if (options.updateSelected)
+    if (updateSelected)
       this.selected = updateSelectedSuggestionFrom(
         event,
         this.selected,
@@ -94,7 +113,7 @@ export class Autocomplete {
     const recreate = completionWord !== this.lastCompletionWord
     if (recreate) {
       this.lastCompletionWord = completionWord
-      this.showViewIn(editor, completionWord, options.autoSelect)
+      this.showViewIn(editor, completionWord, { autoSelect, showEmptyMatch })
     } else updateCachedView(this.view, this.selected.index)
 
     scrollTo(this.selected, this.view, this.suggestions.length)
@@ -171,10 +190,17 @@ export class Autocomplete {
     return this.settings.flowProviderTokenizeStrategy
   }
 
+  // TODO: Create settings type
   private showViewIn(
     editor: CodeMirror.Editor,
     completionWord: string = '',
-    autoSelect: boolean = true
+    {
+      autoSelect,
+      showEmptyMatch,
+    }: { autoSelect: boolean; showEmptyMatch: boolean } = {
+      autoSelect: true,
+      showEmptyMatch: true,
+    }
   ) {
     this.suggestions = this.providers.reduce(
       (acc, provider) => acc.concat(provider.matchWith(completionWord || '')),
@@ -190,7 +216,11 @@ export class Autocomplete {
 
       editor.addKeyMap(this.keyMaps)
 
-      this.view = generateView(this.suggestions, this.selected.index)
+      this.view = generateView(
+        this.suggestions,
+        this.selected.index,
+        showEmptyMatch
+      )
       this.addClickListener(this.view, editor)
       appendWidget(editor, this.view)
     }

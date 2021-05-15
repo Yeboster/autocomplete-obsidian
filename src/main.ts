@@ -1,6 +1,10 @@
 import { MarkdownView, Notice, Plugin, TFile } from 'obsidian'
 import { Autocomplete } from './autocomplete'
-import { isVimNormalMode, isVimTrigger } from './autocomplete/core'
+import {
+  isKeyboardCodePrintable,
+  isVimNormalMode,
+  isVimTrigger,
+} from './autocomplete/core'
 import { TOKENIZE_STRATEGIES } from './providers/flow/tokenizer'
 import { AutocompleteSettings } from './settings/settings'
 import { AutocompleteSettingsTab } from './settings/settings-tab'
@@ -137,20 +141,39 @@ export default class AutocompletePlugin extends Plugin {
     editor: CodeMirror.Editor,
     event: KeyboardEvent
   ) => {
-    console.log('keydown', event)
     const autocomplete = this.autocomplete
+    const settings = this.settings
+    const autoSelect = settings.autoSelect
+
+    if (autocomplete.isShown) return
 
     // Trigger like Vim autocomplete (ctrl+p/n)
     if (
-      isVimTrigger({ settings: this.settings, editor, event }) &&
-      !autocomplete.isShown
+      isVimTrigger({
+        triggerLikeVim: settings.triggerLikeVim,
+        editor,
+        event,
+      })
     ) {
       this.justTriggered = true
 
-      let autoSelect = this.settings.autoSelect // Should be false
-      autocomplete.toggleViewIn(editor, autoSelect)
+      autocomplete.toggleViewIn(editor, {
+        autoSelect,
+        showEmptyMatch: !settings.autoTrigger,
+      })
 
       if (event.key === 'p') autocomplete.selectLastSuggestion()
+    } else if (
+      settings.autoTrigger &&
+      !isVimNormalMode(editor) &&
+      isKeyboardCodePrintable(event.code)
+    ) {
+      this.justTriggered = true
+
+      autocomplete.toggleViewIn(editor, {
+        autoSelect,
+        showEmptyMatch: !settings.autoTrigger,
+      })
     }
   }
 
@@ -164,8 +187,16 @@ export default class AutocompletePlugin extends Plugin {
 
     this.updateEditorIfChanged(editor, autocomplete)
 
+    const settings = this.settings
     let updateSelected = true
-    if (isVimTrigger({ settings: this.settings, editor, event }) && this.justTriggered) {
+    if (
+      isVimTrigger({
+        triggerLikeVim: settings.triggerLikeVim,
+        editor,
+        event,
+      }) &&
+      this.justTriggered
+    ) {
       // Do not update selected when there is vim trigger
       updateSelected = false
       this.justTriggered = false
@@ -173,7 +204,8 @@ export default class AutocompletePlugin extends Plugin {
 
     autocomplete.updateViewIn(editor, event, {
       updateSelected,
-      autoSelect: this.settings.autoSelect,
+      autoSelect: settings.autoSelect,
+      showEmptyMatch: !settings.autoTrigger,
     })
 
     autocomplete.updateProvidersFrom(event, editor)

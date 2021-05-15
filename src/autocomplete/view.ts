@@ -1,7 +1,11 @@
 import { Completion } from '../providers/provider'
 import { Direction } from './core'
 
-export function generateView(suggestions: Completion[], selectedIndex: number) {
+export function generateView(
+  suggestions: Completion[],
+  selectedIndex: number,
+  showEmptyMatch = true
+) {
   const suggestionsHtml = suggestions.map((tip: Completion, index) => {
     const isSelected = selectedIndex === index
     return `
@@ -15,8 +19,13 @@ export function generateView(suggestions: Completion[], selectedIndex: number) {
         </div>
       `
   }, [])
-  const suggestionsJoined = suggestionsHtml.join('\n')
-  const viewString = `
+
+  const containerNode = document.createElement('div')
+  containerNode.classList.add('suggestion-container')
+
+  if (suggestionsHtml.length !== 0 || showEmptyMatch) {
+    const suggestionsJoined = suggestionsHtml.join('\n')
+    const viewString = `
       <div id="suggestion-list" class="suggestion">
         ${
           suggestionsJoined.length > 0
@@ -39,9 +48,8 @@ export function generateView(suggestions: Completion[], selectedIndex: number) {
         </div>
       </div>
     `
-  const containerNode = document.createElement('div')
-  containerNode.classList.add('suggestion-container')
-  containerNode.insertAdjacentHTML('beforeend', viewString)
+    containerNode.insertAdjacentHTML('beforeend', viewString)
+  }
 
   return containerNode
 }
