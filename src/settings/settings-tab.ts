@@ -33,14 +33,37 @@ export class AutocompleteSettingsTab extends PluginSettingTab {
       )
 
     new Setting(containerEl)
+      .setName('Auto trigger')
+      .setDesc(
+        "Trigger autocomplete on every keystroke. Not compatible with 'Trigger like Vim' and 'auto select'"
+      )
+      .addToggle((cb) =>
+        cb.setValue(this.plugin.settings.autoTrigger).onChange((value) => {
+          if (this.plugin.settings.triggerLikeVim)
+            this.plugin.settings.triggerLikeVim = false
+          if (this.plugin.settings.autoSelect)
+            this.plugin.settings.autoSelect = false
+
+          this.plugin.settings.autoTrigger = value
+          this.plugin.saveData(this.plugin.settings)
+          this.plugin.refresh()
+
+          // Render again
+          this.display()
+        })
+      )
+
+    new Setting(containerEl)
       .setName('Auto select')
       .setDesc(
-        "Auto select suggestion if there is only one. Not compatible with 'Trigger like Vim'"
+        "Auto select suggestion if there is only one. Not compatible with 'Trigger like Vim' and 'Auto Trigger'"
       )
       .addToggle((cb) =>
         cb.setValue(this.plugin.settings.autoSelect).onChange((value) => {
           if (this.plugin.settings.triggerLikeVim)
             this.plugin.settings.triggerLikeVim = false
+          if (this.plugin.settings.autoTrigger)
+            this.plugin.settings.autoTrigger = false
 
           this.plugin.settings.autoSelect = value
           this.plugin.saveData(this.plugin.settings)
@@ -60,6 +83,8 @@ export class AutocompleteSettingsTab extends PluginSettingTab {
         cb.setValue(this.plugin.settings.triggerLikeVim).onChange((value) => {
           if (this.plugin.settings.autoSelect)
             this.plugin.settings.autoSelect = false
+          if (this.plugin.settings.autoTrigger)
+            this.plugin.settings.autoTrigger = false
 
           this.plugin.settings.triggerLikeVim = value
           this.plugin.saveData(this.plugin.settings)
