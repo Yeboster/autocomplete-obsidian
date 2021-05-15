@@ -1,3 +1,5 @@
+import { Autocomplete } from 'src/autocomplete'
+import { AutocompleteSettings } from 'src/settings/settings'
 import { Provider } from '../providers/provider'
 
 export type Direction = {
@@ -74,4 +76,21 @@ export function copyObject(obj: any): any {
 
 export function isVimNormalMode(editor: CodeMirror.Editor): boolean {
   return editor.getOption('keyMap') === 'vim'
+}
+
+export function isVimTrigger({
+  settings,
+  editor,
+  event,
+}: {
+  settings: AutocompleteSettings
+  editor: CodeMirror.Editor
+  event: KeyboardEvent
+}) {
+  return (
+    settings.triggerLikeVim &&
+    !isVimNormalMode(editor) &&
+    event.ctrlKey &&
+    (event.key === 'n' || event.key === 'p')
+  )
 }

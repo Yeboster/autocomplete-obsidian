@@ -1,6 +1,6 @@
 import { MarkdownView, Notice, Plugin, TFile } from 'obsidian'
 import { Autocomplete } from './autocomplete'
-import { isVimNormalMode } from './autocomplete/core'
+import { isVimNormalMode, isVimTrigger } from './autocomplete/core'
 import { TOKENIZE_STRATEGIES } from './providers/flow/tokenizer'
 import { AutocompleteSettings } from './settings/settings'
 import { AutocompleteSettingsTab } from './settings/settings-tab'
@@ -9,6 +9,7 @@ import { StatusBarView } from './statusbar'
 export default class AutocompletePlugin extends Plugin {
   private autocomplete: Autocomplete
   private lastUsedEditor: CodeMirror.Editor
+  private justTriggered: boolean
 
   private statusBar: StatusBarView
 
@@ -67,6 +68,7 @@ export default class AutocompletePlugin extends Plugin {
 
   enable() {
     this.autocomplete = new Autocomplete(this.settings)
+    this.justTriggered = false
 
     const settings = this.settings
     if (this.settings.flowProvider) this.statusBar.addStatusBar()
@@ -129,46 +131,51 @@ export default class AutocompletePlugin extends Plugin {
 
   /*
    * Listener used to trigger autocomplete
+   * It intercepts inputs that could change the current line (e.g. ctrl+n)
    */
   private keyDownListener = (
     editor: CodeMirror.Editor,
     event: KeyboardEvent
   ) => {
+    console.log('keydown', event)
     const autocomplete = this.autocomplete
 
-    // TODO: Refactor autocomplete behavior options
     // Trigger like Vim autocomplete (ctrl+p/n)
-    let updateSelected = true
-    let autoSelect = true
     if (
-      this.settings.triggerLikeVim &&
-      !isVimNormalMode(editor) &&
-      !autocomplete.isShown &&
-      event.ctrlKey &&
-      (event.key === 'n' || event.key === 'p')
+      isVimTrigger({ settings: this.settings, editor, event }) &&
+      !autocomplete.isShown
     ) {
-      // Do not update since we are changing selected
-      updateSelected = false
-      // Do not auto select otherwise cursor jumps on an another line
-      autoSelect = false
+      this.justTriggered = true
 
+      let autoSelect = this.settings.autoSelect // Should be false
       autocomplete.toggleViewIn(editor, autoSelect)
 
       if (event.key === 'p') autocomplete.selectLastSuggestion()
     }
-
-    if (!autocomplete.isShown) return
-
-    this.updateEditorIfChanged(editor, autocomplete)
-
-    autocomplete.updateViewIn(editor, event, { updateSelected, autoSelect })
   }
 
   /*
    * Listener used to scan current word
+   * Updates autocomplete results
    */
   private keyUpListener = (editor: CodeMirror.Editor, event: KeyboardEvent) => {
     const autocomplete = this.autocomplete
+    if (!autocomplete.isShown) return
+
+    this.updateEditorIfChanged(editor, autocomplete)
+
+    let updateSelected = true
+    if (isVimTrigger({ settings: this.settings, editor, event }) && this.justTriggered) {
+      // Do not update selected when there is vim trigger
+      updateSelected = false
+      this.justTriggered = false
+    }
+
+    autocomplete.updateViewIn(editor, event, {
+      updateSelected,
+      autoSelect: this.settings.autoSelect,
+    })
+
     autocomplete.updateProvidersFrom(event, editor)
   }
 
