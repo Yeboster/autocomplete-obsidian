@@ -114,7 +114,6 @@ export function isAutoTrigger(
     !tokenizer.isWordSeparator(event.key) &&
     isKeyboardCodePrintable(event.code)
   ) {
-    debugger
     const cursor = editor.getCursor()
     const currentLine = editor.getLine(cursor.line)
     // If last word is longer or eq than threshold
