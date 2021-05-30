@@ -13,7 +13,7 @@ export class AutocompleteSettings {
   triggerLikeVim: boolean = false
 
   // TODO: Refactor provider settings
-  latexProvider: boolean = true
+  latexProvider: boolean = false
   flowProvider: boolean = true
   flowProviderScanCurrent: boolean = true
   flowProviderTokenizeStrategy: TokenizeStrategy = 'default'
