@@ -5,6 +5,7 @@
     "inlineSources": true,
     "module": "ESNext",
     "target": "es5",
+    "downlevelIteration": true, // Let me use scalar iterators
     "allowJs": true,
     "noImplicitAny": true,
     "moduleResolution": "node",

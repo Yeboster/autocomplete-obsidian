@@ -7,6 +7,7 @@ import AutocompletePlugin from '../main'
 
 export class AutocompleteSettingsTab extends PluginSettingTab {
   plugin: AutocompletePlugin
+  MAX_TRIGGER_THRESHOLD = 8
 
   constructor(app: App, plugin: AutocompletePlugin) {
     super(app, plugin)
@@ -35,7 +36,7 @@ export class AutocompleteSettingsTab extends PluginSettingTab {
     new Setting(containerEl)
       .setName('Auto trigger (Beta)')
       .setDesc(
-        "Trigger autocomplete on printable keystroke that are not word separators"
+        'Trigger autocomplete on printable keystroke that are not word separators'
       )
       .addToggle((cb) =>
         cb.setValue(this.plugin.settings.autoTrigger).onChange((value) => {
@@ -54,10 +55,30 @@ export class AutocompleteSettingsTab extends PluginSettingTab {
       )
 
     new Setting(containerEl)
-      .setName('Auto select')
+      .setName('Auto trigger from n-th character')
       .setDesc(
-        "Auto select suggestion if there is only one"
+        'Trigger autocomplete only when there are at least n characters in the last word'
       )
+      .addDropdown((cb) => {
+        const options = [...Array(this.MAX_TRIGGER_THRESHOLD).keys()].map((o) => String(o))
+        options.forEach((opt) => cb.addOption(opt, opt))
+
+        const minLength = String(this.plugin.settings.autoTriggerMinSize)
+        cb.setValue(minLength).onChange((val) => {
+          if (this.plugin.settings.autoTrigger) {
+            this.plugin.settings.autoTriggerMinSize = Number(val)
+            this.plugin.saveData(this.plugin.settings)
+            this.plugin.refresh()
+          } else {
+            new Notice('Cannot change because Auto Trigger is not enabled.')
+            cb.setValue(minLength)
+          }
+        })
+      })
+
+    new Setting(containerEl)
+      .setName('Auto select')
+      .setDesc('Auto select suggestion if there is only one')
       .addToggle((cb) =>
         cb.setValue(this.plugin.settings.autoSelect).onChange((value) => {
           if (this.plugin.settings.triggerLikeVim)
@@ -154,6 +175,7 @@ export class AutocompleteSettingsTab extends PluginSettingTab {
               this.plugin.refresh()
             } else {
               new Notice('Cannot change because flow provider is not enabled.')
+              cb.setValue(settings.flowProviderTokenizeStrategy)
             }
           }
         )
