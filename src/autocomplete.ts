@@ -145,7 +145,7 @@ export class Autocomplete {
       (tokenizer.isWordSeparator(event.key) || event.key === 'Enter')
     ) {
       const cursor = copyObject(editor.getCursor())
-      if (/Enter/.test(event.key)) {
+      if (event.key === 'Enter') {
         cursor.line -= 1
         const currentLine = editor.getLine(cursor.line)
 
@@ -207,10 +207,13 @@ export class Autocomplete {
       []
     )
 
-    if (!this.isShown && autoSelect && this.suggestions.length === 1) {
+    const suggestionsLength = this.suggestions.length
+    if (!this.isShown && autoSelect && suggestionsLength === 1) {
       // Suggest automatically
       this.selected.index = 0
       this.selectSuggestion(editor)
+    } else if (!showEmptyMatch && suggestionsLength === 0) {
+      this.removeViewFrom(editor)
     } else {
       if (this.view) this.removeViewFrom(editor)
 
@@ -218,8 +221,7 @@ export class Autocomplete {
 
       this.view = generateView(
         this.suggestions,
-        this.selected.index,
-        showEmptyMatch
+        this.selected.index
       )
       this.addClickListener(this.view, editor)
       appendWidget(editor, this.view)
