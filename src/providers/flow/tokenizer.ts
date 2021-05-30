@@ -76,7 +76,7 @@ export abstract class Tokenizer {
    * Remove spaces and word separators
    * near the left of the cursorIndex
    */
-  private normalizedLine(
+  protected normalizedLine(
     line: string,
     cursorIndex: number
   ): { normalized: string; updatedCursor: number } {
