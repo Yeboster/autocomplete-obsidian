@@ -112,7 +112,8 @@ export function isAutoTrigger(
     settings.autoTrigger &&
     !isVimNormalMode(editor) &&
     !tokenizer.isWordSeparator(event.key) &&
-    isKeyboardCodePrintable(event.code)
+    isKeyboardCodePrintable(event.code) && 
+    !(event.metaKey && (event.code === "KeyC" || event.code === "KeyV")) // Not on copy/paste
   ) {
     const cursor = editor.getCursor()
     const currentLine = editor.getLine(cursor.line)
