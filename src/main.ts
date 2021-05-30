@@ -1,7 +1,7 @@
 import { MarkdownView, Notice, Plugin, TFile } from 'obsidian'
 import { Autocomplete } from './autocomplete'
 import {
-  isKeyboardCodePrintable,
+  isAutoTrigger,
   isVimNormalMode,
   isVimTrigger,
 } from './autocomplete/core'
@@ -163,12 +163,7 @@ export default class AutocompletePlugin extends Plugin {
       })
 
       if (event.key === 'p') autocomplete.selectLastSuggestion()
-    } else if (
-      settings.autoTrigger &&
-      !isVimNormalMode(editor) &&
-      !autocomplete.tokenizer.isWordSeparator(event.key) &&
-      isKeyboardCodePrintable(event.code)
-    ) {
+    } else if (isAutoTrigger(editor, event, autocomplete.tokenizer, settings)) {
       this.justTriggered = true
 
       autocomplete.toggleViewIn(editor, {

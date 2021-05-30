@@ -5,6 +5,7 @@ export class AutocompleteSettings {
 
   autoSelect: boolean = false
   autoTrigger: boolean = true
+  autoTriggerMinSize: number = 4
 
   /*
    * Trigger on ctrl-p/n bindings
