@@ -31,4 +31,13 @@ export class JapaneseTokenizer extends Tokenizer {
 
     return length > 0 ? tokens[length - 1] : null
   }
+
+  lastWordStartPos(
+    text: string,
+    index: number,
+    options: TokenizerOptions = { normalize: false }
+  ): number {
+    const lastWord = this.lastWordFrom(text, index, options)
+    return lastWord ? text.length - lastWord.length : 0
+  }
 }
