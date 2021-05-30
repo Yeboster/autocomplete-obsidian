@@ -7,7 +7,6 @@ import AutocompletePlugin from '../main'
 
 export class AutocompleteSettingsTab extends PluginSettingTab {
   plugin: AutocompletePlugin
-  MAX_TRIGGER_THRESHOLD = 8
 
   constructor(app: App, plugin: AutocompletePlugin) {
     super(app, plugin)
@@ -60,7 +59,7 @@ export class AutocompleteSettingsTab extends PluginSettingTab {
         'Trigger autocomplete only when there are at least n characters in the last word'
       )
       .addDropdown((cb) => {
-        const options = [...Array(this.MAX_TRIGGER_THRESHOLD).keys()].map((o) => String(o))
+        const options = ["1","2","3","4","5","6","7","8"]
         options.forEach((opt) => cb.addOption(opt, opt))
 
         const minLength = String(this.plugin.settings.autoTriggerMinSize)
