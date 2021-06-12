@@ -17,9 +17,9 @@ export class AutocompleteSettings {
   flowProvider: boolean = true
   flowProviderScanCurrent: boolean = true
   flowProviderTokenizeStrategy: TokenizeStrategy = 'default'
-  flowWordSeparators: {[K in TokenizeStrategy]: string} = {
-    default: `~!@#$%^&*()-=+[{\]}|;:' ",.<>\/?$`,
-    arabic: `~!@#$%^&*()-=+[{\]}|;:' ",.<>\/?$،؛`,
-    japanese: `~!@#$%^&*()-=+[{\]}|;:' ",.<>\/?$`,
+  flowWordSeparators: { [K in TokenizeStrategy]: string } = {
+    default: `~?!@#$%^&*()-=+[{]}|;:' ",.<>/`,
+    arabic: `~?!@#$%^&*()-=+[{]}|;:' ",.<>/،؛`,
+    japanese: `~?!@#$%^&*()-=+[{]}|;:' ",.<>/`,
   }
 }
