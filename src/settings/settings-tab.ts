@@ -31,7 +31,7 @@ export class AutocompleteSettingsTab extends PluginSettingTab {
       )
 
     new Setting(containerEl)
-      .setName('Auto trigger (Beta)')
+      .setName('Auto trigger')
       .setDesc(
         'Trigger autocomplete on printable keystroke that are not word separators'
       )
