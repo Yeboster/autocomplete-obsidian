@@ -4,7 +4,6 @@ import {
   managePlaceholders,
   updateSelectedSuggestionFrom,
   copyObject,
-  selectLastSuggestion,
 } from './autocomplete/core'
 import {
   generateView,
@@ -137,9 +136,7 @@ export class Autocomplete {
   }
 
   public updateProvidersFrom(event: KeyboardEvent, editor: CodeMirror.Editor) {
-    const tokenizer = TokenizerFactory.getTokenizer(
-      this.settings.flowProviderTokenizeStrategy
-    )
+    const tokenizer = this.tokenizer
     if (
       !event.ctrlKey &&
       (tokenizer.isWordSeparator(event.key) || event.key === 'Enter')
@@ -158,7 +155,7 @@ export class Autocomplete {
       this.providers.forEach((provider) => {
         // For now only FlowProvider
         if (provider instanceof FlowProvider)
-          provider.addLastWordFrom(line, cursor.ch, this.tokenizerStrategy)
+          provider.addLastWordFrom(line, cursor.ch, tokenizer)
       })
     }
   }
@@ -168,8 +165,15 @@ export class Autocomplete {
     file.vault?.read(file).then((content: string) => {
       // TODO: Make it async
       providers.forEach((provider) => {
-        if (provider instanceof FlowProvider)
-          provider.addWordsFrom(content, strategy)
+        if (provider instanceof FlowProvider) {
+          let tokenizer = this.tokenizer
+          if (strategy !== this.tokenizerStrategy)
+            tokenizer = TokenizerFactory.getTokenizer(
+              strategy,
+              this.getWordSeparatorsFrom(strategy)
+            )
+          provider.addWordsFrom(content, tokenizer)
+        }
       })
     })
   }
@@ -183,11 +187,22 @@ export class Autocomplete {
   }
 
   public get tokenizer() {
-    return TokenizerFactory.getTokenizer(this.tokenizerStrategy)
+    return TokenizerFactory.getTokenizer(
+      this.tokenizerStrategy,
+      this.tokenizerWordSeparators
+    )
   }
 
   private get tokenizerStrategy() {
     return this.settings.flowProviderTokenizeStrategy
+  }
+
+  private get tokenizerWordSeparators() {
+    return this.settings.flowWordSeparators[this.tokenizerStrategy]
+  }
+
+  private getWordSeparatorsFrom(strategy: TokenizeStrategy) {
+    return this.settings.flowWordSeparators[strategy]
   }
 
   // TODO: Create settings type
@@ -219,10 +234,7 @@ export class Autocomplete {
 
       editor.addKeyMap(this.keyMaps)
 
-      this.view = generateView(
-        this.suggestions,
-        this.selected.index
-      )
+      this.view = generateView(this.suggestions, this.selected.index)
       this.addClickListener(this.view, editor)
       appendWidget(editor, this.view)
     }

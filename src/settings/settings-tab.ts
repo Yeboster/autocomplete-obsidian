@@ -19,8 +19,6 @@ export class AutocompleteSettingsTab extends PluginSettingTab {
 
     containerEl.empty()
 
-    containerEl.createEl('h2', { text: 'Autocomplete Settings' })
-
     new Setting(containerEl)
       .setName('Enabled')
       .setDesc('Set the autocomplete state')
@@ -59,7 +57,7 @@ export class AutocompleteSettingsTab extends PluginSettingTab {
         'Trigger autocomplete only when there are at least n characters in the last word'
       )
       .addDropdown((cb) => {
-        const options = ["1","2","3","4","5","6","7","8"]
+        const options = ['1', '2', '3', '4', '5', '6', '7', '8']
         options.forEach((opt) => cb.addOption(opt, opt))
 
         const minLength = String(this.plugin.settings.autoTriggerMinSize)
@@ -116,12 +114,12 @@ export class AutocompleteSettingsTab extends PluginSettingTab {
       )
 
     // Providers
-    new Setting(containerEl)
-      .setName('Text Providers')
-      .setDesc(
-        'The providers below suggest completions based on input. Be aware that enabling multiple providers can decrease performance'
-      )
-      .setHeading()
+    containerEl.createEl('h2', { text: 'Text Providers', cls: 'text-left' })
+    containerEl.createEl('div', {
+      text:
+        'The providers below suggest completions based on input. Be aware that enabling multiple providers can decrease performance',
+      cls: 'setting-item-description',
+    })
 
     new Setting(containerEl)
       .setClass('no-border-top')
@@ -138,6 +136,12 @@ export class AutocompleteSettingsTab extends PluginSettingTab {
     new Setting(containerEl)
       .setName('Flow Provider')
       .setDesc('Learns as you type. For now limited to current session')
+      .setHeading()
+
+    new Setting(containerEl)
+      .setClass('no-border-top')
+      .setName('Enabled')
+      .setDesc('Enable Flow Provider')
       .addToggle((cb) =>
         cb.setValue(this.plugin.settings.flowProvider).onChange((value) => {
           this.plugin.settings.flowProvider = value
@@ -154,35 +158,7 @@ export class AutocompleteSettingsTab extends PluginSettingTab {
       )
 
     new Setting(containerEl)
-      .setName('Flow Provider: Scan strategy')
-      .setDesc('Choose the default scan strategy')
-      .addDropdown((cb) => {
-        // Add options
-        TOKENIZE_STRATEGIES.forEach((strategy) => {
-          const capitalized = strategy.replace(/^\w/, (c) =>
-            c.toLocaleUpperCase()
-          )
-          cb.addOption(strategy, capitalized)
-        })
-
-        const settings = this.plugin.settings
-        cb.setValue(settings.flowProviderTokenizeStrategy).onChange(
-          (value: TokenizeStrategy) => {
-            if (settings.flowProvider) {
-              this.plugin.settings.flowProviderTokenizeStrategy = value
-              this.plugin.saveData(this.plugin.settings)
-              this.plugin.refresh()
-            } else {
-              new Notice('Cannot change because flow provider is not enabled.')
-              cb.setValue(settings.flowProviderTokenizeStrategy)
-            }
-          }
-        )
-      })
-
-    // TODO: Improve UI reactivity when parent setting is disabled
-    new Setting(containerEl)
-      .setName('Flow Provider: Scan current file')
+      .setName('Scan current file')
       .setDesc(
         'Provides current file text suggestions. Be aware of performance issues with large files.'
       )
@@ -205,5 +181,65 @@ export class AutocompleteSettingsTab extends PluginSettingTab {
           this.display()
         })
       })
+
+    new Setting(containerEl)
+      .setName('Scan strategy')
+      .setDesc('Choose the default scan strategy')
+      .addDropdown((cb) => {
+        // Add options
+        TOKENIZE_STRATEGIES.forEach((strategy) => {
+          cb.addOption(strategy, this.capitalize(strategy))
+        })
+
+        const settings = this.plugin.settings
+        cb.setValue(settings.flowProviderTokenizeStrategy).onChange(
+          (value: TokenizeStrategy) => {
+            if (settings.flowProvider) {
+              this.plugin.settings.flowProviderTokenizeStrategy = value
+              this.plugin.saveData(this.plugin.settings)
+              this.plugin.refresh()
+            } else {
+              new Notice('Cannot change because flow provider is not enabled.')
+              cb.setValue(settings.flowProviderTokenizeStrategy)
+            }
+          }
+        )
+      })
+
+    new Setting(containerEl)
+      .setName('Word separators')
+      .setDesc(
+        'Change word separators to personalize the autocomplete suggestions'
+      )
+    const settings = this.plugin.settings
+    const wordSeparators = settings.flowWordSeparators
+    const strategies = Object.keys(wordSeparators) as TokenizeStrategy[]
+    strategies.forEach((strategy, index) => {
+      const separators = wordSeparators[strategy]
+      const setting = new Setting(containerEl).setName(
+        this.capitalize(strategy)
+      )
+      if (index === 1) setting.setClass('no-border-top')
+      if (strategy === 'japanese')
+        setting.setDesc(
+          'Used only to remove from suggestions. Word separation is done by Tokenizer'
+        )
+
+      setting.addText((cb) => {
+        cb.setValue(separators).onChange((value) => {
+          if (settings.flowProvider) {
+            settings.flowWordSeparators[strategy] = value
+            this.plugin.saveData(settings)
+            this.plugin.refresh()
+          } else {
+            new Notice('Cannot change because flow provider is not enabled.')
+            cb.setValue(separators)
+          }
+        })
+      })
+    })
   }
+
+  capitalize = (text: string) =>
+    text.replace(/^\w/, (c) => c.toLocaleUpperCase())
 }

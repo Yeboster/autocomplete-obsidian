@@ -209,19 +209,11 @@ export default class AutocompletePlugin extends Plugin {
 
   private onLayoutReady() {
     const file = this.app.workspace.getActiveFile()
-    if (file)
-      this.autocomplete.scanFile(
-        file,
-        this.settings.flowProviderTokenizeStrategy
-      )
+    if (file) this.autocomplete.scanFile(file)
   }
 
   private onFileOpened(file: TFile) {
-    if (file)
-      this.autocomplete.scanFile(
-        file,
-        this.settings.flowProviderTokenizeStrategy
-      )
+    if (file) this.autocomplete.scanFile(file)
   }
 
   private getValidEditorFor(
