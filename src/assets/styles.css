@@ -11,3 +11,7 @@
   margin: 10pt;
   color: var(--text-faint);
 }
+
+.text-left {
+  text-align: left;
+}

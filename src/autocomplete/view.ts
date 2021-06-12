@@ -34,7 +34,7 @@ export function generateView(suggestions: Completion[], selectedIndex: number) {
           <span>Previous Suggestion</span>
         </div>
         <div class="prompt-instruction">
-          <span class="prompt-instruction-command">Enter</span>
+          <span class="prompt-instruction-command">Enter/Tab</span>
           <span>Select Suggestion</span>
         </div>
       </div>

@@ -4,18 +4,18 @@ import { DefaultTokenizer } from './tokenizer/default'
 import { JapaneseTokenizer } from './tokenizer/japanese'
 
 export class TokenizerFactory {
-  static getTokenizer(strategy: TokenizeStrategy): Tokenizer {
+  static getTokenizer(strategy: TokenizeStrategy, wordSeparators: string): Tokenizer {
     let tokenizer: Tokenizer
     switch (strategy) {
       case 'default':
-        tokenizer = new DefaultTokenizer()
+        tokenizer = new DefaultTokenizer(wordSeparators)
         break
 
       case 'japanese':
-        tokenizer = new JapaneseTokenizer()
+        tokenizer = new JapaneseTokenizer(wordSeparators)
         break
       case 'arabic':
-        tokenizer = new ArabicTokenizer()
+        tokenizer = new ArabicTokenizer(wordSeparators)
         break
 
       default:

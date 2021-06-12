@@ -14,10 +14,13 @@ export type Range = { start?: number; end?: number }
 export type TokenizerOptions = { normalize: boolean }
 
 export abstract class Tokenizer {
-  protected readonly wordSeparatorPattern: RegExp = /[\[\]()<>"'.,|:; `!?\/]/
+  protected wordSeparatorPattern: RegExp
   protected readonly trimPattern: RegExp
 
-  constructor() {
+  constructor(wordSeparators: string) {
+    const escapedSeparators = wordSeparators.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+    this.wordSeparatorPattern = new RegExp(`[${escapedSeparators}]`)
+
     // NOTE: global flag takes note of lastIndex used!
     this.trimPattern = new RegExp(this.wordSeparatorPattern, 'g')
   }
@@ -76,7 +79,7 @@ export abstract class Tokenizer {
    * Remove spaces and word separators
    * near the left of the cursorIndex
    */
-  private normalizedLine(
+  protected normalizedLine(
     line: string,
     cursorIndex: number
   ): { normalized: string; updatedCursor: number } {
