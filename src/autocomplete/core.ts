@@ -112,8 +112,17 @@ export function isAutoTrigger(
     settings.autoTrigger &&
     !isVimNormalMode(editor) &&
     !tokenizer.isWordSeparator(event.key) &&
-    isKeyboardCodePrintable(event.code) && 
-    !(event.metaKey && (event.code === "KeyC" || event.code === "KeyV" || event.code === "KeyZ")) // Not on copy/paste/undo
+    isKeyboardCodePrintable(event.code) &&
+    !(
+      // Not on copy/cut/paste/undo
+      (
+        (event.ctrlKey || event.metaKey) &&
+        (event.code === 'KeyX' ||
+          event.code === 'KeyC' ||
+          event.code === 'KeyV' ||
+          event.code === 'KeyZ')
+      )
+    )
   ) {
     const cursor = editor.getCursor()
     const currentLine = editor.getLine(cursor.line)
