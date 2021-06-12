@@ -13,7 +13,7 @@ import { StatusBarView } from './statusbar'
 export default class AutocompletePlugin extends Plugin {
   private autocomplete: Autocomplete
   private lastUsedEditor: CodeMirror.Editor
-  private justTriggered: boolean
+  private justTriggeredBy: 'vim' | 'autotrigger' | undefined
 
   private statusBar: StatusBarView
 
@@ -72,7 +72,7 @@ export default class AutocompletePlugin extends Plugin {
 
   enable() {
     this.autocomplete = new Autocomplete(this.settings)
-    this.justTriggered = false
+    this.justTriggeredBy = undefined
 
     const settings = this.settings
     if (settings.flowProvider) this.statusBar.addStatusBar()
@@ -148,9 +148,10 @@ export default class AutocompletePlugin extends Plugin {
     if (
       autocomplete.isShown &&
       autocomplete.tokenizer.isWordSeparator(event.key)
-    )
-      return this.autocomplete.removeViewFrom(editor)
-    else if (autocomplete.isShown) return
+    ) {
+      this.autocomplete.removeViewFrom(editor)
+      return
+    } else if (autocomplete.isShown) return
 
     // Trigger like Vim autocomplete (ctrl+p/n)
     if (
@@ -160,7 +161,7 @@ export default class AutocompletePlugin extends Plugin {
         event,
       })
     ) {
-      this.justTriggered = true
+      this.justTriggeredBy = 'vim'
 
       autocomplete.toggleViewIn(editor, {
         autoSelect,
@@ -169,7 +170,7 @@ export default class AutocompletePlugin extends Plugin {
 
       if (event.key === 'p') autocomplete.selectLastSuggestion()
     } else if (isAutoTrigger(editor, event, autocomplete.tokenizer, settings)) {
-      this.justTriggered = true
+      this.justTriggeredBy = 'autotrigger'
 
       autocomplete.toggleViewIn(editor, {
         autoSelect,
@@ -198,18 +199,20 @@ export default class AutocompletePlugin extends Plugin {
         editor,
         event,
       }) &&
-      this.justTriggered
+      this.justTriggeredBy === 'vim'
     ) {
       // Do not update selected when there is vim trigger
       updateSelected = false
-      this.justTriggered = false
     }
 
-    autocomplete.updateViewIn(editor, event, {
-      updateSelected,
-      autoSelect: settings.autoSelect,
-      showEmptyMatch: !settings.autoTrigger,
-    })
+    if (this.justTriggeredBy !== 'autotrigger')
+      autocomplete.updateViewIn(editor, event, {
+        updateSelected,
+        autoSelect: settings.autoSelect,
+        showEmptyMatch: !settings.autoTrigger,
+      })
+
+    if (this.justTriggeredBy) this.justTriggeredBy = undefined
   }
 
   private onLayoutReady() {

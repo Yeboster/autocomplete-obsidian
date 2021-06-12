@@ -96,8 +96,6 @@ export class Autocomplete {
       showEmptyMatch: true,
     }
   ) {
-    if (!event.ctrlKey && event.key === ' ') return this.removeViewFrom(editor)
-
     if (updateSelected)
       this.selected = updateSelectedSuggestionFrom(
         event,
