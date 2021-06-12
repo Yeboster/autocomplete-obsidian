@@ -10,15 +10,18 @@ This plugin provides a text autocomplete feature to enhance typing speed.
 
 ## Features
 
-There are the current and planned features:
+There are the current and planned features.
 
 - Default autocomplete features:
-  - Trigger autocomplete with `ctrl+space` or `Toggle Autocomplete` command
-  - Change suggestion with `Ctrl-n/p` or `up/down arrows` and select with `enter`
-  - Autocomplete view style as Obsidian
+  - Trigger autocomplete:
+    - manually with `ctrl+space` or `Toggle Autocomplete` command
+    - Automatically using auto **trigger autocomplete while writing** for a seamless writing experience
+      - Customize trigger from n-th character in settings
+  - Change suggestion with `Ctrl-n/p` or `up/down arrows` and select with `enter/tab`
   - Seamless integration with vim mode
-- Tokenizer for multiple languages (For now Arabic, Japanese and a default):
+- Tokenizer for multiple languages (for now Arabic, Japanese and a default):
   - Change default tokenizer in settings or click on statusbar (`strategy: ...`)
+  - Customize word separators per language
 - Suggest completions with text providers:
   - LaTex
   - Flow (suggests words already written in the current session)
