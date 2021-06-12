@@ -75,7 +75,7 @@ export default class AutocompletePlugin extends Plugin {
     this.justTriggered = false
 
     const settings = this.settings
-    if (this.settings.flowProvider) this.statusBar.addStatusBar()
+    if (settings.flowProvider) this.statusBar.addStatusBar()
     if (settings.flowProviderScanCurrent) {
       this.app.workspace.on('file-open', this.onFileOpened, this)
 
@@ -145,7 +145,12 @@ export default class AutocompletePlugin extends Plugin {
     const settings = this.settings
     const autoSelect = settings.autoSelect
 
-    if (autocomplete.isShown) return
+    if (
+      autocomplete.isShown &&
+      autocomplete.tokenizer.isWordSeparator(event.key)
+    )
+      return this.autocomplete.removeViewFrom(editor)
+    else if (autocomplete.isShown) return
 
     // Trigger like Vim autocomplete (ctrl+p/n)
     if (
