@@ -4,7 +4,6 @@ import {
   managePlaceholders,
   updateSelectedSuggestionFrom,
   copyObject,
-  selectLastSuggestion,
 } from './autocomplete/core'
 import {
   generateView,
@@ -47,7 +46,17 @@ export class Autocomplete {
     return this.view !== null
   }
 
-  public toggleViewIn(editor: CodeMirror.Editor, autoSelect: boolean = true) {
+  // TODO: Create settings type
+  public toggleViewIn(
+    editor: CodeMirror.Editor,
+    {
+      autoSelect,
+      showEmptyMatch,
+    }: { autoSelect: boolean; showEmptyMatch: boolean } = {
+      autoSelect: true,
+      showEmptyMatch: true,
+    }
+  ) {
     const isEnabled = this.settings.enabled
     if (this.isShown || !isEnabled) {
       this.cursorAtTrigger = null
@@ -66,21 +75,28 @@ export class Autocomplete {
 
       const word = currentLine.slice(wordStartIndex, cursorAt)
 
-      this.showViewIn(editor, word, autoSelect)
+      this.showViewIn(editor, word, { autoSelect, showEmptyMatch })
     }
   }
 
   public updateViewIn(
     editor: CodeMirror.Editor,
     event: KeyboardEvent,
-    options: { updateSelected: boolean; autoSelect: boolean } = {
+    {
+      updateSelected,
+      autoSelect,
+      showEmptyMatch,
+    }: {
+      updateSelected: boolean
+      autoSelect: boolean
+      showEmptyMatch: boolean
+    } = {
       updateSelected: true,
       autoSelect: true,
+      showEmptyMatch: true,
     }
   ) {
-    if (!event.ctrlKey && event.key === ' ') return this.removeViewFrom(editor)
-
-    if (options.updateSelected)
+    if (updateSelected)
       this.selected = updateSelectedSuggestionFrom(
         event,
         this.selected,
@@ -94,7 +110,7 @@ export class Autocomplete {
     const recreate = completionWord !== this.lastCompletionWord
     if (recreate) {
       this.lastCompletionWord = completionWord
-      this.showViewIn(editor, completionWord, options.autoSelect)
+      this.showViewIn(editor, completionWord, { autoSelect, showEmptyMatch })
     } else updateCachedView(this.view, this.selected.index)
 
     scrollTo(this.selected, this.view, this.suggestions.length)
@@ -118,15 +134,13 @@ export class Autocomplete {
   }
 
   public updateProvidersFrom(event: KeyboardEvent, editor: CodeMirror.Editor) {
-    const tokenizer = TokenizerFactory.getTokenizer(
-      this.settings.flowProviderTokenizeStrategy
-    )
+    const tokenizer = this.tokenizer
     if (
       !event.ctrlKey &&
       (tokenizer.isWordSeparator(event.key) || event.key === 'Enter')
     ) {
       const cursor = copyObject(editor.getCursor())
-      if (/Enter/.test(event.key)) {
+      if (event.key === 'Enter') {
         cursor.line -= 1
         const currentLine = editor.getLine(cursor.line)
 
@@ -139,7 +153,7 @@ export class Autocomplete {
       this.providers.forEach((provider) => {
         // For now only FlowProvider
         if (provider instanceof FlowProvider)
-          provider.addLastWordFrom(line, cursor.ch, this.tokenizerStrategy)
+          provider.addLastWordFrom(line, cursor.ch, tokenizer)
       })
     }
   }
@@ -149,8 +163,15 @@ export class Autocomplete {
     file.vault?.read(file).then((content: string) => {
       // TODO: Make it async
       providers.forEach((provider) => {
-        if (provider instanceof FlowProvider)
-          provider.addWordsFrom(content, strategy)
+        if (provider instanceof FlowProvider) {
+          let tokenizer = this.tokenizer
+          if (strategy !== this.tokenizerStrategy)
+            tokenizer = TokenizerFactory.getTokenizer(
+              strategy,
+              this.getWordSeparatorsFrom(strategy)
+            )
+          provider.addWordsFrom(content, tokenizer)
+        }
       })
     })
   }
@@ -163,28 +184,49 @@ export class Autocomplete {
     }
   }
 
-  private get tokenizer() {
-    return TokenizerFactory.getTokenizer(this.tokenizerStrategy)
+  public get tokenizer() {
+    return TokenizerFactory.getTokenizer(
+      this.tokenizerStrategy,
+      this.tokenizerWordSeparators
+    )
   }
 
   private get tokenizerStrategy() {
     return this.settings.flowProviderTokenizeStrategy
   }
 
+  private get tokenizerWordSeparators() {
+    return this.settings.flowWordSeparators[this.tokenizerStrategy]
+  }
+
+  private getWordSeparatorsFrom(strategy: TokenizeStrategy) {
+    return this.settings.flowWordSeparators[strategy]
+  }
+
+  // TODO: Create settings type
   private showViewIn(
     editor: CodeMirror.Editor,
     completionWord: string = '',
-    autoSelect: boolean = true
+    {
+      autoSelect,
+      showEmptyMatch,
+    }: { autoSelect: boolean; showEmptyMatch: boolean } = {
+      autoSelect: true,
+      showEmptyMatch: true,
+    }
   ) {
     this.suggestions = this.providers.reduce(
       (acc, provider) => acc.concat(provider.matchWith(completionWord || '')),
       []
     )
 
-    if (!this.isShown && autoSelect && this.suggestions.length === 1) {
+    const suggestionsLength = this.suggestions.length
+    if (!this.isShown && autoSelect && suggestionsLength === 1) {
       // Suggest automatically
       this.selected.index = 0
       this.selectSuggestion(editor)
+    } else if (!showEmptyMatch && suggestionsLength === 0) {
+      this.removeViewFrom(editor)
     } else {
       if (this.view) this.removeViewFrom(editor)
 
@@ -200,8 +242,13 @@ export class Autocomplete {
     // Override code mirror default key maps
     'Ctrl-P': () => {},
     'Ctrl-N': () => {},
-    Down: () => {},
     Up: () => {},
+    Down: () => {},
+    Right: (editor: CodeMirror.Editor) => this.removeViewFrom(editor),
+    Left: (editor: CodeMirror.Editor) => this.removeViewFrom(editor),
+    Tab: (editor: CodeMirror.Editor) => {
+      this.selectSuggestion(editor)
+    },
     Enter: (editor: CodeMirror.Editor) => {
       this.selectSuggestion(editor)
     },

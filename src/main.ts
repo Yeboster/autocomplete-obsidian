@@ -1,6 +1,10 @@
 import { MarkdownView, Notice, Plugin, TFile } from 'obsidian'
 import { Autocomplete } from './autocomplete'
-import { isVimNormalMode, isVimTrigger } from './autocomplete/core'
+import {
+  isAutoTrigger,
+  isVimNormalMode,
+  isVimTrigger,
+} from './autocomplete/core'
 import { TOKENIZE_STRATEGIES } from './providers/flow/tokenizer'
 import { AutocompleteSettings } from './settings/settings'
 import { AutocompleteSettingsTab } from './settings/settings-tab'
@@ -9,7 +13,7 @@ import { StatusBarView } from './statusbar'
 export default class AutocompletePlugin extends Plugin {
   private autocomplete: Autocomplete
   private lastUsedEditor: CodeMirror.Editor
-  private justTriggered: boolean
+  private justTriggeredBy: 'vim' | 'autotrigger' | undefined
 
   private statusBar: StatusBarView
 
@@ -68,10 +72,10 @@ export default class AutocompletePlugin extends Plugin {
 
   enable() {
     this.autocomplete = new Autocomplete(this.settings)
-    this.justTriggered = false
+    this.justTriggeredBy = undefined
 
     const settings = this.settings
-    if (this.settings.flowProvider) this.statusBar.addStatusBar()
+    if (settings.flowProvider) this.statusBar.addStatusBar()
     if (settings.flowProviderScanCurrent) {
       this.app.workspace.on('file-open', this.onFileOpened, this)
 
@@ -137,20 +141,41 @@ export default class AutocompletePlugin extends Plugin {
     editor: CodeMirror.Editor,
     event: KeyboardEvent
   ) => {
-    console.log('keydown', event)
     const autocomplete = this.autocomplete
+    const settings = this.settings
+    const autoSelect = settings.autoSelect
+
+    if (
+      autocomplete.isShown &&
+      autocomplete.tokenizer.isWordSeparator(event.key)
+    ) {
+      this.autocomplete.removeViewFrom(editor)
+      return
+    } else if (autocomplete.isShown) return
 
     // Trigger like Vim autocomplete (ctrl+p/n)
     if (
-      isVimTrigger({ settings: this.settings, editor, event }) &&
-      !autocomplete.isShown
+      isVimTrigger({
+        triggerLikeVim: settings.triggerLikeVim,
+        editor,
+        event,
+      })
     ) {
-      this.justTriggered = true
+      this.justTriggeredBy = 'vim'
 
-      let autoSelect = this.settings.autoSelect // Should be false
-      autocomplete.toggleViewIn(editor, autoSelect)
+      autocomplete.toggleViewIn(editor, {
+        autoSelect,
+        showEmptyMatch: !settings.autoTrigger,
+      })
 
       if (event.key === 'p') autocomplete.selectLastSuggestion()
+    } else if (isAutoTrigger(editor, event, autocomplete.tokenizer, settings)) {
+      this.justTriggeredBy = 'autotrigger'
+
+      autocomplete.toggleViewIn(editor, {
+        autoSelect,
+        showEmptyMatch: !settings.autoTrigger,
+      })
     }
   }
 
@@ -160,40 +185,43 @@ export default class AutocompletePlugin extends Plugin {
    */
   private keyUpListener = (editor: CodeMirror.Editor, event: KeyboardEvent) => {
     const autocomplete = this.autocomplete
+    autocomplete.updateProvidersFrom(event, editor)
+
     if (!autocomplete.isShown) return
 
     this.updateEditorIfChanged(editor, autocomplete)
 
+    const settings = this.settings
     let updateSelected = true
-    if (isVimTrigger({ settings: this.settings, editor, event }) && this.justTriggered) {
+    if (
+      isVimTrigger({
+        triggerLikeVim: settings.triggerLikeVim,
+        editor,
+        event,
+      }) &&
+      this.justTriggeredBy === 'vim'
+    ) {
       // Do not update selected when there is vim trigger
       updateSelected = false
-      this.justTriggered = false
     }
 
-    autocomplete.updateViewIn(editor, event, {
-      updateSelected,
-      autoSelect: this.settings.autoSelect,
-    })
+    if (this.justTriggeredBy !== 'autotrigger')
+      autocomplete.updateViewIn(editor, event, {
+        updateSelected,
+        autoSelect: settings.autoSelect,
+        showEmptyMatch: !settings.autoTrigger,
+      })
 
-    autocomplete.updateProvidersFrom(event, editor)
+    if (this.justTriggeredBy) this.justTriggeredBy = undefined
   }
 
   private onLayoutReady() {
     const file = this.app.workspace.getActiveFile()
-    if (file)
-      this.autocomplete.scanFile(
-        file,
-        this.settings.flowProviderTokenizeStrategy
-      )
+    if (file) this.autocomplete.scanFile(file)
   }
 
   private onFileOpened(file: TFile) {
-    if (file)
-      this.autocomplete.scanFile(
-        file,
-        this.settings.flowProviderTokenizeStrategy
-      )
+    if (file) this.autocomplete.scanFile(file)
   }
 
   private getValidEditorFor(

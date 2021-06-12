@@ -1,5 +1,5 @@
 import { TokenizerFactory } from './flow/factory'
-import { TokenizeStrategy } from './flow/tokenizer'
+import { Tokenizer, TokenizeStrategy } from './flow/tokenizer'
 import { Provider } from './provider'
 
 export class FlowProvider extends Provider {
@@ -9,9 +9,9 @@ export class FlowProvider extends Provider {
   addLastWordFrom(
     line: string,
     cursorIndex: number,
-    strategy: TokenizeStrategy
+    tokenizer: Tokenizer
   ): void {
-    const word = TokenizerFactory.getTokenizer(strategy).lastWordFrom(
+    const word = tokenizer.lastWordFrom(
       line,
       cursorIndex,
       { normalize: true }
@@ -20,8 +20,8 @@ export class FlowProvider extends Provider {
     this.addWord(word)
   }
 
-  addWordsFrom(text: string, strategy: TokenizeStrategy = 'default') {
-    const result = TokenizerFactory.getTokenizer(strategy).tokenize(text)
+  addWordsFrom(text: string, tokenizer: Tokenizer) {
+    const result = tokenizer.tokenize(text)
 
     result.tokens.forEach((token) => this.addWord(token))
   }

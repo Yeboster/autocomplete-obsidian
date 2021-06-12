@@ -1,3 +1,11 @@
+- Trigger autocomplete while writing (Auto trigger)
+- Improve autocomplete input logic
+- Select suggestion with Tab or Enter
+- Close autocomplete if typed word separator
+- Add missing latex \end tags
+- Customizable word separators
+- Disable latex by default (since a lot of users do not use this)
+
 # 0.7.4
 - Fix autocomplete trigger by using key-down event
 - Implement optional trigger like vim (ctrl-n/p)

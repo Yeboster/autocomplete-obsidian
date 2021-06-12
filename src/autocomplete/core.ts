@@ -1,4 +1,5 @@
 import { Autocomplete } from 'src/autocomplete'
+import { Tokenizer } from 'src/providers/flow/tokenizer'
 import { AutocompleteSettings } from 'src/settings/settings'
 import { Provider } from '../providers/provider'
 
@@ -79,18 +80,57 @@ export function isVimNormalMode(editor: CodeMirror.Editor): boolean {
 }
 
 export function isVimTrigger({
-  settings,
+  triggerLikeVim,
   editor,
   event,
 }: {
-  settings: AutocompleteSettings
+  triggerLikeVim: boolean
   editor: CodeMirror.Editor
   event: KeyboardEvent
 }) {
   return (
-    settings.triggerLikeVim &&
+    triggerLikeVim &&
     !isVimNormalMode(editor) &&
     event.ctrlKey &&
     (event.key === 'n' || event.key === 'p')
   )
+}
+
+const PRINTABLE_CHARS: string[] = ["Digit0", "Digit1", "Digit2", "Digit3", "Digit4", "Digit5", "Digit6", "Digit7", "Digit8", "Digit9", "Minus", "Equal", "KeyQ", "KeyW", "KeyE", "KeyR", "KeyT", "KeyY", "KeyU", "KeyI", "KeyO", "KeyP", "BracketLeft", "BracketRight", "KeyA", "KeyS", "KeyD", "KeyF", "KeyG", "KeyH", "KeyJ", "KeyK", "KeyL", "Semicolon", "Quote", "Backquote", "Backslash", "KeyZ", "KeyX", "KeyC", "KeyV", "KeyB", "KeyN", "KeyM", "Comma", "Period", "Slash", "NumpadMultiply", "Numpad7", "Numpad8", "Numpad9", "NumpadSubtract", "Numpad4", "Numpad5", "Numpad6", "NumpadAdd", "Numpad1", "Numpad2", "Numpad3", "Numpad0", "NumpadDecimal"]
+export function isKeyboardCodePrintable(code: string) {
+  return PRINTABLE_CHARS.includes(code)
+}
+
+export function isAutoTrigger(
+  editor: CodeMirror.Editor,
+  event: KeyboardEvent,
+  tokenizer: Tokenizer,
+  settings: AutocompleteSettings
+) {
+  let trigger = false
+  if (
+    settings.autoTrigger &&
+    !isVimNormalMode(editor) &&
+    !tokenizer.isWordSeparator(event.key) &&
+    isKeyboardCodePrintable(event.code) &&
+    !(
+      // Not on copy/cut/paste/undo
+      (
+        (event.ctrlKey || event.metaKey) &&
+        (event.code === 'KeyX' ||
+          event.code === 'KeyC' ||
+          event.code === 'KeyV' ||
+          event.code === 'KeyZ')
+      )
+    )
+  ) {
+    const cursor = editor.getCursor()
+    const currentLine = editor.getLine(cursor.line)
+    // If last word is longer or eq than threshold
+    trigger =
+      currentLine.length - tokenizer.lastWordStartPos(currentLine, cursor.ch) >=
+      settings.autoTriggerMinSize
+  }
+
+  return trigger
 }
