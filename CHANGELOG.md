@@ -1,3 +1,4 @@
+# 0.8.0
 - Trigger autocomplete while writing (Auto trigger)
 - Improve autocomplete input logic
 - Select suggestion with Tab or Enter
