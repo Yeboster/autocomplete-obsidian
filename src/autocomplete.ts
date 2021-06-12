@@ -244,8 +244,13 @@ export class Autocomplete {
     // Override code mirror default key maps
     'Ctrl-P': () => {},
     'Ctrl-N': () => {},
-    Down: () => {},
     Up: () => {},
+    Down: () => {},
+    Right: (editor: CodeMirror.Editor) => this.removeViewFrom(editor),
+    Left: (editor: CodeMirror.Editor) => this.removeViewFrom(editor),
+    Tab: (editor: CodeMirror.Editor) => {
+      this.selectSuggestion(editor)
+    },
     Enter: (editor: CodeMirror.Editor) => {
       this.selectSuggestion(editor)
     },
