@@ -11,5 +11,7 @@
     "importHelpers": true,
     "lib": ["dom", "es5", "scripthost", "es2019"]
   },
-  "include": ["**/*.ts"]
+  "include": [
+    "src/**/*.ts"
+  ]
 }

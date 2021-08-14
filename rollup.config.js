@@ -2,8 +2,10 @@ import typescript from '@rollup/plugin-typescript';
 import {nodeResolve} from '@rollup/plugin-node-resolve';
 import commonjs from '@rollup/plugin-commonjs';
 import copy from 'rollup-plugin-copy';
+import webWorkerLoader from 'rollup-plugin-web-worker-loader';
+
 const TEST_VAULT = 'test-vault/.obsidian/plugins/autocomplete-obsidian';
-const STYLES_FILE = './src/assets/styles.css'
+const STYLES_FILE = './src/assets/styles.css';
 
 export default {
   input: './src/main.ts',
@@ -18,6 +20,7 @@ export default {
     typescript(),
     nodeResolve({browser: true}),
     commonjs(),
+    webWorkerLoader({ targetPlatform: 'browser' }),
     copy({
       targets: [
         { src: 'dist/main.js', dest: TEST_VAULT },
