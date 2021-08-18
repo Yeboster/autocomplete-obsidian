@@ -22,17 +22,12 @@ class AutocompletePlugin extends Plugin {
 
   async load() {
     console.log('loading autocomplete plugin');
-    console.log(`VER: ${randomBytes(4).toString('hex')}`);
 
     // TODO: Settings
     // TODO: Status bar
 
-    this.core = new Core("");
+    this.core = new Core("default", "");
     this.view = new View();
-
-    searchWorker.search(this.store, 'hello there').then(result => {
-      console.log(result);
-    });
 
     this.registerCodeMirror((editor) => {
       editor.on('keyup', this.keyUpListener);
@@ -56,16 +51,10 @@ class AutocompletePlugin extends Plugin {
     editor: Editor,
     event: KeyboardEvent
   ) => {
-    console.log('clicked', event.key);
-
-    // TODO: Remove if word separator
     if (this.view.isShown() && this.core.isWordSeparator(event.key)) {
-      console.log('removing view...');
-
       this.view.remove(editor);
       return;
     } else {
-      console.log('showing view...');
       const currentWord = this.core.wordUnderCursor(editor);
       const completions = await searchWorker.search(this.store, currentWord);
       this.view.show(editor, completions);

@@ -1,5 +1,8 @@
 import { Editor, Position } from "codemirror";
 import { copyObject } from "./helpers/core";
+import { TokenizerFactory } from "./providers/flow/factory";
+import { Tokenizer } from "./providers/flow/tokenizer";
+import { TokenizeStrategy } from "./tokenizer";
 
 export interface Completion {
   category: string;
@@ -8,13 +11,16 @@ export interface Completion {
 
 class Core {
   // TODO: Add tokenizers
-  protected readonly wordSeparatorPattern: RegExp;
-  protected readonly trimPattern: RegExp;
+  private readonly wordSeparatorPattern: RegExp;
+  private readonly trimPattern: RegExp;
   private cursorAtTrigger: Position;
+  private tokenizer: Tokenizer;
 
-  constructor(wordSeparators: string) {
+
+  constructor(strategy: TokenizeStrategy, wordSeparators: string) {
     // TODO: Remove this when we have a tokenizer
     wordSeparators = `~?!@#$%^&*()-=+[{]}|;:' ",.<>/`;
+    this.tokenizer = TokenizerFactory.getTokenizer(strategy, wordSeparators);
 
     const escapedSeparators = wordSeparators.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     this.wordSeparatorPattern = new RegExp(`[${escapedSeparators}]`);
