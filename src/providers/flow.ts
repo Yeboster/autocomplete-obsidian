@@ -1,5 +1,4 @@
-import { TokenizerFactory } from './flow/factory'
-import { Tokenizer, TokenizeStrategy } from './flow/tokenizer'
+import { Tokenizer } from './flow/tokenizer'
 import { Provider } from './provider'
 
 export class FlowProvider extends Provider {

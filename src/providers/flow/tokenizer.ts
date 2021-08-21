@@ -14,10 +14,15 @@ export type Range = { start?: number; end?: number; };
 export type TokenizerOptions = { normalize: boolean; };
 
 export abstract class Tokenizer {
-  protected wordSeparatorPattern: RegExp;
+  protected readonly wordSeparatorPattern: RegExp;
   protected readonly trimPattern: RegExp;
 
+  type: TokenizeStrategy = 'default';
+  wordSeparators: string;
+
   constructor(wordSeparators: string) {
+    this.wordSeparators = wordSeparators;
+
     const escapedSeparators = wordSeparators.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     this.wordSeparatorPattern = new RegExp(`[${escapedSeparators}]`);
 

@@ -1,22 +1,9 @@
 import { Editor } from "codemirror";
-import { randomBytes } from "crypto";
 import { Plugin } from "obsidian";
 import Core from "./core";
 import View from "./view";
-import searchWorker from './workers/search';
 
 class AutocompletePlugin extends Plugin {
-  // TODO: Use indexedDB
-  private store = [
-    {
-      category: 'F',
-      value: "hello"
-    },
-    {
-      category: 'F',
-      value: "there"
-    },
-  ];
   private core: Core;
   private view: View;
 
@@ -55,8 +42,11 @@ class AutocompletePlugin extends Plugin {
       this.view.remove(editor);
       return;
     } else {
+      // TODO: Use observable to update view
+      this.core.scanCurrentFile(this.app);
+
       const currentWord = this.core.wordUnderCursor(editor);
-      const completions = await searchWorker.search(this.store, currentWord);
+      const completions = this.core.matchAll(this.core.store, currentWord);
       this.view.show(editor, completions);
     }
 
