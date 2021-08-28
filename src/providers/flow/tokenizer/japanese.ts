@@ -22,12 +22,8 @@ export class JapaneseTokenizer extends Tokenizer {
     index: number,
     options: TokenizerOptions = { normalize: false }
   ): string | null {
-    const { normalized } = options.normalize
-      ? this.normalizedLine(text, index)
-      : { normalized: text };
-
     const tokens = this.tokenizer
-      .segment(normalized)
+      .segment(text)
       .map((t: string) => t.replace(this.trimPattern, ''));
     const length = tokens.length;
 

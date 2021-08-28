@@ -12,8 +12,7 @@ export class FlowProvider extends Provider {
   ): void {
     const word = tokenizer.lastWordFrom(
       line,
-      cursorIndex,
-      { normalize: true }
+      cursorIndex
     )
 
     this.addWord(word)
