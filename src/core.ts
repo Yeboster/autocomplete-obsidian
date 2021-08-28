@@ -36,18 +36,21 @@ class Core {
     this.trimPattern = new RegExp(this.wordSeparatorPattern, 'g');
   }
 
-  public wordUnderCursor(editor: Editor) {
+  public wordUnderCursor(editor: Editor, options: { skipLastWord?: boolean; } = { skipLastWord: false }) {
     const cursor = copyObject(editor.getCursor());
     const currentLine: string = editor.getLine(cursor.line);
 
-    const wordStartIndex = this.wordUnderCursorPos(
-      currentLine,
-      cursor.ch
-    );
-    const cursorAt = cursor.ch;
-    cursor.ch = wordStartIndex;
+    let wordStartPos = this.wordUnderCursorPos(currentLine, cursor.ch);
+    if (options.skipLastWord) {
+      // Do it again to skip last word
+      const skippedWordPos = wordStartPos - 1;
+      wordStartPos = this.wordUnderCursorPos(currentLine, skippedWordPos);
+    }
 
-    const word = currentLine.slice(wordStartIndex, cursorAt);
+    const cursorAt = cursor.ch;
+    cursor.ch = wordStartPos;
+
+    const word = currentLine.slice(wordStartPos, cursorAt);
 
     return word;
   }
@@ -86,7 +89,7 @@ class Core {
     const inputHasUpperCase = /[A-Z]/.test(query);
 
     if (store === null)
-      store = this.store
+      store = this.store;
 
     // case-sensitive logic if input has an upper case.
     // Otherwise, uses case-insensitive logic

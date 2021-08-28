@@ -1,6 +1,5 @@
-import { time, timeEnd } from "console";
-import { Editor as IEditor } from "codemirror";
-import { Editor, MarkdownEditView, Plugin } from "obsidian";
+import { Editor } from "codemirror";
+import { Plugin } from "obsidian";
 import Core, { Store } from "./core";
 import { isAutoTrigger, isTrigger } from "./helpers/core";
 import View from "./view";
@@ -10,7 +9,7 @@ class AutocompletePlugin extends Plugin {
   private core: Core;
   private view: View;
 
-  private editor: IEditor;
+  private editor: Editor;
 
   async load() {
     console.log('loading autocomplete plugin');
@@ -20,7 +19,7 @@ class AutocompletePlugin extends Plugin {
 
     // TODO: Remove when settings are implemented
     const wordSeparatorPattern = `~?!@#$%^&*()-=+[{]}|;:' ",.<>/`;
-    const tokenizer = TokenizerFactory.getTokenizer("default", wordSeparatorPattern)
+    const tokenizer = TokenizerFactory.getTokenizer("default", wordSeparatorPattern);
 
     this.core = new Core("default", "");
     this.view = new View(this, tokenizer);
@@ -59,51 +58,35 @@ class AutocompletePlugin extends Plugin {
     if (isTrigger(event)) {
       if (this.view.isShown())
         this.view.removeFrom(editor);
-      else
-        this.scanAndShowAutocomplete(editor);
-    } else if (this.view.isShown()) {
-      if (this.core.isWordSeparator(event.key))
-        this.view.removeFrom(editor);
-      else
-        this.updateAutocomplete(editor, event);
-    } else if (isAutoTrigger(editor, event, this.core.tokenizer))
-      // TODO: When auto triggering, trigger on beginning of word
-      this.scanAndShowAutocomplete(editor);
+      else {
+        this.asyncScanCurrentFile(editor);
+        this.showAutocomplete(editor);
+      }
+    } else if (this.core.isWordSeparator(event.key)) {
+      this.view.removeFrom(editor, { resetCursorAtTrigger: true });
+    } else if (this.view.isShown())
+      this.showAutocomplete(editor);
+    else if (isAutoTrigger(editor, event, this.core.tokenizer)) {
+      this.asyncScanCurrentFile(editor, { skipLastWord: true });
+      this.showAutocomplete(editor);
+    }
   };
 
-  private scanAndShowAutocomplete(editor: IEditor) {
+  private showAutocomplete(editor: Editor) {
     const currentWord = this.core.wordUnderCursor(editor);
-
-    this.scanCurrentFileWithCallback(editor);
-
-    const completions = this.core.search(currentWord);
-    this.view.show(editor, completions);
+    const getSuggestions = () => this.core.search(currentWord);
+    this.view.show({ editor, currentWord, getSuggestions });
   }
 
-  private scanCurrentFileWithCallback(editor: IEditor) {
-    // TODO: Use observable to update view
-    this.core.scanCurrentFile(this.app).then((store: Store) => {
+  private asyncScanCurrentFile(editor: Editor, options: { skipLastWord?: boolean; } = {}) {
+    this.core.scanCurrentFile(this.app).then((store?: Store) => {
       if (store) {
         const getSuggestions = (query: string) => this.core.search(query, store);
-        const currentWord = this.core.wordUnderCursor(editor);
+        const currentWord = this.core.wordUnderCursor(editor, options);
 
-        if (this.view.isShown()) {
-          this.view.update({ editor, currentWord, getSuggestions });
-        } else {
-          const completions = getSuggestions(currentWord);
-          this.view.show(editor, completions);
-        }
+        this.view.show({ editor, currentWord, getSuggestions });
       }
-    });;
-  }
-
-  private updateAutocomplete(editor: IEditor, event: KeyboardEvent) {
-    // TODO: How frequently scan the file?
-    this.scanCurrentFileWithCallback(editor);
-
-    const currentWord = this.core.wordUnderCursor(editor);
-    const getSuggestions = (query: string) => this.core.search(query);
-    this.view.update({ editor, currentWord, event, getSuggestions });
+    });
   }
 }
 

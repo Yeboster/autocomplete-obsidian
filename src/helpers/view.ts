@@ -170,7 +170,7 @@ export function updateSelectedSuggestionFrom(
   return updatedSelected;
 }
 
-export type UpdateOptions = {
+export type ViewOptions = {
   editor: Editor,
   currentWord: string,
   event?: KeyboardEvent,

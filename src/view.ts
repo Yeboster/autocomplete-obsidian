@@ -1,7 +1,6 @@
 import { Editor } from "codemirror";
 import { Completion } from "./core";
-import { copyObject } from "./helpers/core";
-import { appendWidget, ClickListenerOptions, defaultDirection, Direction, generateView, managePlaceholders, scrollTo, updateCachedView, updateSelectedSuggestionFrom, UpdateOptions, extractCursorAtTrigger } from "./helpers/view";
+import { appendWidget, ClickListenerOptions, defaultDirection, Direction, generateView, managePlaceholders, scrollTo, updateCachedView, updateSelectedSuggestionFrom, ViewOptions, extractCursorAtTrigger } from "./helpers/view";
 import AutocompletePlugin from "./main";
 import { Tokenizer } from "./providers/flow/tokenizer";
 class View {
@@ -28,24 +27,26 @@ class View {
     return this.view != null;
   }
 
-  public show(editor: Editor, results: Completion[]) {
-    // TODO: Remove this line when updating view
-    if (this.isShown()) this.removeFrom(editor);
+
+
+  public show(options: ViewOptions) {
+    const { editor, currentWord, getSuggestions } = options;
 
     console.log("Cursor at trigger", this.cursorAtTrigger);
 
-    this.suggestions = results;
     if (!this.cursorAtTrigger)
       this.cursorAtTrigger = extractCursorAtTrigger(editor, this.tokenizer);
 
-    editor.addKeyMap(this.autocompleteKeymap);
-
-    // TODO: Update the view here if it already exists
-
-    this.view = generateView(results, 0);
-    this.addClickListener({ view: this.view, editor });
-    // TODO: Use appendListWidget
-    appendWidget(editor, this.view);
+    if (this.isShown()) {
+      this.update(options);
+    } else {
+      this.suggestions = getSuggestions(currentWord);
+      editor.addKeyMap(this.autocompleteKeymap);
+      this.view = generateView(this.suggestions, 0);
+      this.addClickListener({ view: this.view, editor });
+      // TODO: Use appendListWidget
+      appendWidget(editor, this.view);
+    }
   }
 
   public removeFrom(editor: Editor, { resetCursorAtTrigger } = { resetCursorAtTrigger: false }) {
@@ -67,19 +68,18 @@ class View {
     }
   }
 
-  public update(options: UpdateOptions): void {
-    const { editor, currentWord, getSuggestions } = options;
+  public update(options: ViewOptions): void {
+    const { editor, currentWord, event } = options;
 
     if (currentWord !== this.lastCompletionWord) {
       this.removeFrom(editor);
       this.lastCompletionWord = currentWord;
-      this.suggestions = getSuggestions(currentWord);
-      this.show(editor, this.suggestions);
+      this.show(options);
     } else {
       // Update selected item if changed in event
-      if (this.suggestions && options.event)
+      if (this.suggestions && event)
         this.selected = updateSelectedSuggestionFrom(
-          options.event,
+          event,
           this.selected,
           this.suggestions.length
         );
@@ -95,8 +95,8 @@ class View {
     'Ctrl-N': () => { },
     Up: () => { },
     Down: () => { },
-    Right: (editor: Editor) => this.removeFrom(editor, { resetCursorAtTrigger: true }),
-    Left: (editor: Editor) => this.removeFrom(editor, { resetCursorAtTrigger: true }),
+    Right: (editor: Editor) => { },
+    Left: (editor: Editor) => { },
     Tab: (editor: Editor) => {
       this.selectSuggestion(editor);
     },
