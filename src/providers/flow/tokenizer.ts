@@ -34,17 +34,12 @@ export abstract class Tokenizer {
 
   lastWordStartPos(
     text: string,
-    index: number,
-    options: TokenizerOptions = { normalize: false }
+    offset: number,
   ): number {
-    const { normalized, updatedCursor } = options.normalize
-      ? this.normalizedLine(text, index)
-      : { normalized: text, updatedCursor: index };
-
-    let wordStartIndex = updatedCursor;
+    let wordStartIndex = offset;
     while (
       wordStartIndex &&
-      !this.isWordSeparator(normalized.charAt(wordStartIndex - 1))
+      !this.isWordSeparator(text.charAt(wordStartIndex - 1))
     )
       wordStartIndex -= 1;
 
@@ -54,55 +49,19 @@ export abstract class Tokenizer {
   lastWordFrom(
     text: string,
     cursorIndex: number,
-    options: TokenizerOptions = { normalize: false }
   ): string | null {
-    const { normalized, updatedCursor } = options.normalize
-      ? this.normalizedLine(text, cursorIndex)
-      : { normalized: text, updatedCursor: cursorIndex };
-
-    if (options.normalize)
-      // Already normalized
-      options.normalize = false;
-
     let wordStartIndex = this.lastWordStartPos(
-      normalized,
-      updatedCursor,
-      options
+      text,
+      cursorIndex
     );
     let word: string | null = null;
-    if (wordStartIndex !== updatedCursor)
-      word = text.slice(wordStartIndex, updatedCursor);
+    if (wordStartIndex !== cursorIndex)
+      word = text.slice(wordStartIndex, cursorIndex);
 
     return word;
   }
 
   isWordSeparator(char: string) {
     return this.wordSeparatorPattern.test(char);
-  }
-
-  /*
-   * Remove spaces and word separators
-   * near the left of the cursorIndex
-   */
-  protected normalizedLine(
-    line: string,
-    cursorIndex: number
-  ): { normalized: string; updatedCursor: number; } {
-    const partialLine = line.slice(0, cursorIndex);
-    let normalized = partialLine.trimEnd();
-
-    // Subtract how many spaces removed
-    let updatedCursor = cursorIndex - (partialLine.length - normalized.length);
-
-    if (normalized.length === 0) return { normalized: '', updatedCursor: 0 };
-
-    const lastChar = normalized.charAt(updatedCursor - 1);
-
-    if (this.isWordSeparator(lastChar)) {
-      updatedCursor -= 1;
-      normalized = normalized.slice(0, updatedCursor);
-    }
-
-    return { normalized, updatedCursor };
   }
 }

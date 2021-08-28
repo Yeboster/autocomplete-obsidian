@@ -17,9 +17,8 @@ export type Store = Completion[];
 class Core {
   private readonly wordSeparatorPattern: RegExp;
   private readonly trimPattern: RegExp;
-  private readonly tokenizer: Tokenizer;
-  private cursorAtTrigger: Position;
 
+  tokenizer: Tokenizer;
   store: Store;
 
   constructor(strategy: TokenizeStrategy, wordSeparators: string) {
@@ -47,7 +46,6 @@ class Core {
     );
     const cursorAt = cursor.ch;
     cursor.ch = wordStartIndex;
-    this.cursorAtTrigger = cursor;
 
     const word = currentLine.slice(wordStartIndex, cursorAt);
 
@@ -71,22 +69,24 @@ class Core {
 
   public async scanCurrentFile(app: App) {
     const current = app.workspace.getActiveFile();
-    let scanned = false;
+    let scanned = null;
 
     if (current.extension === "md") {
-      console.log("Scanning current file...");
       const content = await app.vault.read(current);
-      const res = await scanWorker.scan({ store: this.store, text: content, tokenizer: this.tokenizer });
-      this.store = res;
-      scanned = true;
+      const store = await scanWorker.scan({ store: this.store, text: content, tokenizer: this.tokenizer });
+      this.store = store;
+      scanned = store;
     }
 
     return scanned;
   }
 
-  public matchAll(store: Completion[], query: string): Completion[] {
+  public search(query: string, store: Store | Completion[] = null): Completion[] {
     const inputLowered = query.toLowerCase();
     const inputHasUpperCase = /[A-Z]/.test(query);
+
+    if (store === null)
+      store = this.store
 
     // case-sensitive logic if input has an upper case.
     // Otherwise, uses case-insensitive logic
