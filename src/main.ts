@@ -10,6 +10,8 @@ class AutocompletePlugin extends Plugin {
   private core: Core;
   private view: View;
 
+  private editor: IEditor;
+
   async load() {
     console.log('loading autocomplete plugin');
 
@@ -46,6 +48,11 @@ class AutocompletePlugin extends Plugin {
     event: KeyboardEvent
   ) => {
     console.log(`keyup: ${event.code}`);
+
+    if (this.editor !== editor) {
+      this.view.removeFrom(this.editor, { resetCursorAtTrigger: true });
+      this.editor = editor;
+    }
 
     // TODO (?): Trigger like Vim autocomplete (ctrl+p/n)
 
