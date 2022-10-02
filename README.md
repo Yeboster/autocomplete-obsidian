@@ -2,7 +2,10 @@
 
 This plugin provides a text autocomplete feature to enhance typing speed.
 
-<!-- TODO: Update preview gif -->
+> ⚠️ This plugin is longer maintained as I'm not using Obsidian anymore.
+> 
+> I might update it in the future, but until then, please use other plugins like [Obsidian completr](https://github.com/tth05/obsidian-completr)
+
 
 ![Preview](https://media.giphy.com/media/CFbhjfTLDPnUm45vje/giphy.gif)
 
