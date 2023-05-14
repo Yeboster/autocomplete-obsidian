@@ -2,7 +2,7 @@
 
 This plugin provides a text autocomplete feature to enhance typing speed.
 
-> ⚠️ This plugin is longer maintained as I'm not using Obsidian anymore.
+> ⚠️ This plugin is no longer maintained as I'm not using Obsidian anymore.
 > 
 > I might update it in the future, but until then, please use other plugins like [Obsidian completr](https://github.com/tth05/obsidian-completr)
 
